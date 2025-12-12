@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Weather & Operations Dashboard</title>
+
+  <!-- Auto-refresh every 10 minutes -->
+  <meta http-equiv="refresh" content="600">
+
+  <style>
+    body {
+      margin: 0;
+      background-color: #0b1220;
+      color: #ffffff;
+      font-family: Arial, sans-serif;
+    }
+
+    .dashboard {
+      display: grid;
+      grid-template-columns: 35% 40% 25%;
+      grid-template-rows: 50% 50%;
+      gap: 6px;
+      height: 100vh;
+      padding: 6px;
+      box-sizing: border-box;
+    }
+
+    .panel {
+      background: #020617;
+      border: 1px solid #1e293b;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .panel iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    .camera-stack {
+      display: grid;
+      grid-template-rows: repeat(3, 1fr);
+      gap: 6px;
+      height: 100%;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="dashboard">
+
+  <!-- LEFT COLUMN: CAMERAS -->
+  <div class="panel" style="grid-row: span 2;">
+    <div class="camera-stack">
+
+      <!-- Camera 1: webcam.io -->
+      <div class="panel">
+        <iframe
+          src="https://webcam.io/webcams/MpbQgP?embed=true"
+          loading="lazy">
+        </iframe>
+      </div>
+
+      <!-- Camera 2: Twitch -->
+      <div class="panel">
+        <iframe
+          src="https://player.twitch.tv/?channel=5newswdtv&parent=yourdomain.edu"
+          allowfullscreen="true"
+          scrolling="no">
+        </iframe>
+      </div>
+
+      <!-- Camera 3: Optional -->
+      <div class="panel">
+        <!-- Replace or remove if not needed -->
+        <iframe
+          src="https://webcam.io/webcams/REPLACE_ME?embed=true">
+        </iframe>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- CENTER TOP: VENTUSKY -->
+  <div class="panel">
+    <iframe
+      src="https://www.ventusky.com/?p=39.48;-80.14;7&l=radar">
+    </iframe>
+  </div>
+
+  <!-- CENTER BOTTOM: NWS RADAR -->
+  <div class="panel">
+    <iframe
+      src="https://radar.weather.gov/station/KPBZ/standard">
+    </iframe>
+  </div>
+
+  <!-- RIGHT TOP: NWS ALERTS -->
+  <div class="panel">
+    <iframe
+      src="https://www.weather.gov/alerts">
+    </iframe>
+  </div>
+
+  <!-- RIGHT BOTTOM: FORECAST DISCUSSION -->
+  <div class="panel">
+    <iframe
+      src="https://forecast.weather.gov/product.php?site=NWS&product=AFD&issuedby=PBZ">
+    </iframe>
+  </div>
+
+</div>
+
+</body>
+</html>
