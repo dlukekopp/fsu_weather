@@ -29,17 +29,9 @@ body{
   border-bottom:1px solid var(--border);
   gap:12px;
 }
-.header-left{
-  display:flex;
-  flex-direction:column;
-  align-items:flex-start;
-}
+.header-left{display:flex;flex-direction:column}
 .header-title{font-size:18px;font-weight:700}
-.header-meta{
-  font-size:12px;
-  color:var(--muted);
-  margin-top:4px;
-}
+.header-meta{font-size:12px;color:var(--muted);margin-top:4px}
 .separator{margin:0 6px}
 
 .header-right{
@@ -50,13 +42,8 @@ body{
   justify-self:end;
   text-align:right;
 }
-.header-right a{
-  color:var(--text);
-  text-decoration:none;
-}
-.header-right a:hover{
-  text-decoration:underline;
-}
+.header-right a{color:var(--text);text-decoration:none}
+.header-right a:hover{text-decoration:underline}
 
 /* ===== DASHBOARD ===== */
 .dashboard{
@@ -92,11 +79,27 @@ body{
   border-bottom:1px solid var(--border);
   display:flex;
   justify-content:space-between;
+  align-items:center;
 }
+.panel-actions{
+  display:flex;
+  gap:8px;
+}
+.panel-action{
+  display:none;
+  cursor:pointer;
+  font-size:12px;
+  opacity:.7;
+}
+.panel:hover .panel-action{
+  display:inline;
+}
+.panel-action:hover{
+  opacity:1;
+}
+
 .panel-body{flex:1}
 .panel-body iframe{width:100%;height:100%;border:none}
-.edit-btn{display:none;font-size:11px;cursor:pointer}
-.panel:hover .edit-btn{display:inline}
 
 /* ===== EDIT UI ===== */
 .edit-form{padding:10px;font-size:12px}
@@ -222,15 +225,27 @@ function save(){ localStorage.setItem("dashboardConfig", JSON.stringify(config))
 function render(){
   document.querySelectorAll(".panel").forEach(p=>{
     const id=p.dataset.id, c=config[id]||{};
+    const hasLink = !!c.src;
+
     p.innerHTML=`
       <div class="panel-header">
         <span>${c.title||""}</span>
-        <span class="edit-btn" onclick="edit('${id}')">Edit</span>
+        <span class="panel-actions">
+          ${hasLink ? `<span class="panel-action" onclick="openPanel('${id}')">↗</span>` : ""}
+          <span class="panel-action" onclick="edit('${id}')">✏</span>
+        </span>
       </div>
       <div class="panel-body">
         ${c.src?`<iframe src="${c.src}" loading="lazy"></iframe>`:""}
       </div>`;
   });
+}
+
+function openPanel(id){
+  const c = config[id];
+  if(c && c.src){
+    window.open(c.src, "_blank", "noopener");
+  }
 }
 
 function edit(id){
