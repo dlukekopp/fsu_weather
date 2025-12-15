@@ -24,10 +24,9 @@ body{
   min-height:var(--header-height);
   display:grid;
   grid-template-columns:1fr 1fr;
-  padding:10px 16px 12px;
+  padding:10px 16px;
   background:#020617f2;
   border-bottom:1px solid var(--border);
-  gap:12px;
 }
 .header-left{display:flex;flex-direction:column}
 .header-title{font-size:18px;font-weight:700}
@@ -37,7 +36,7 @@ body{
 .header-right{
   font-size:12px;
   color:var(--muted);
-  line-height:1.4;
+  line-height:1.35;
   max-width:90%;
   justify-self:end;
   text-align:right;
@@ -91,15 +90,32 @@ body{
   font-size:12px;
   opacity:.7;
 }
-.panel:hover .panel-action{
-  display:inline;
-}
-.panel-action:hover{
-  opacity:1;
+.panel:hover .panel-action{display:inline}
+.panel-action:hover{opacity:1}
+
+.panel-body{flex:1;padding:6px}
+.panel-body iframe{
+  width:100%;
+  height:100%;
+  border:none;
 }
 
-.panel-body{flex:1}
-.panel-body iframe{width:100%;height:100%;border:none}
+/* ===== NOTES ===== */
+.notes-display{
+  font-size:13px;
+  white-space:pre-wrap;
+  color:#e5e7eb;
+}
+.notes-edit{
+  width:100%;
+  height:100%;
+  background:#020617;
+  color:#fff;
+  border:1px solid var(--border);
+  border-radius:4px;
+  padding:6px;
+  resize:none;
+}
 
 /* ===== EDIT UI ===== */
 .edit-form{padding:10px;font-size:12px}
@@ -112,6 +128,11 @@ body{
   color:#fff;
   border:1px solid var(--border);
   border-radius:4px;
+}
+.edit-form small{
+  display:block;
+  margin-top:6px;
+  color:var(--muted);
 }
 .actions{
   display:flex;
@@ -185,142 +206,161 @@ footer span{opacity:.5}
 
 <script>
 /* ===== CLOCK + REFRESH ===== */
-const REFRESH_INTERVAL = 600;
-let remaining = REFRESH_INTERVAL;
-
-function updateTime(){
-  const now = new Date();
-  time12.textContent = now.toLocaleTimeString("en-US");
-  time24.textContent = now.toLocaleTimeString("en-GB");
+const REFRESH_INTERVAL=600;
+let remaining=REFRESH_INTERVAL;
+function tick(){
+  const n=new Date();
+  time12.textContent=n.toLocaleTimeString("en-US");
+  time24.textContent=n.toLocaleTimeString("en-GB");
+  refreshCountdown.textContent=remaining;
+  if(--remaining<0) location.reload();
 }
-function updateCountdown(){
-  refreshCountdown.textContent = remaining;
-  remaining--;
-  if(remaining < 0) location.reload();
-}
-updateTime();
-updateCountdown();
-setInterval(updateTime,1000);
-setInterval(updateCountdown,1000);
+tick();
+setInterval(tick,1000);
 
 /* ===== PANEL SOURCES ===== */
-const PANEL_SOURCES = {
-  "":{label:"Custom",title:"",src:""},
-  "traffic":{label:"Traffic Camera",title:"Traffic Camera",src:"https://webcam.io/webcams/MpbQgP?embed=true"},
-  "ventusky":{label:"Ventusky Radar",title:"Radar (Ventusky)",src:"https://embed.ventusky.com/?p=38.98;-81.21;7&l=radar"},
-  "nws":{label:"NWS RLX",title:"NWS RLX",src:"https://www.weather.gov/rlx"},
-  "wv511":{label:"WV 511",title:"WV 511",src:"https://www.wv511.org"},
-  "radio":{label:"Emergency Radio",title:"Emergency Radio",src:"https://www.broadcastify.com/webPlayer/40500"}
+const PANEL_SOURCES={
+  "":{label:"Custom iframe",type:"iframe"},
+  "traffic":{label:"Traffic Camera",type:"iframe",title:"Traffic Camera",src:"https://webcam.io/webcams/MpbQgP?embed=true"},
+  "ventusky":{label:"Ventusky Radar",type:"iframe",title:"Radar (Ventusky)",src:"https://embed.ventusky.com/?p=38.98;-81.21;7&l=radar"},
+  "nws":{label:"NWS RLX",type:"iframe",title:"NWS RLX",src:"https://www.weather.gov/rlx"},
+  "wv511":{label:"WV 511",type:"iframe",title:"WV 511",src:"https://www.wv511.org"},
+  "radio":{label:"Emergency Radio",type:"iframe",title:"Emergency Radio",src:"https://www.broadcastify.com/webPlayer/40500"},
+  "notes":{label:"Notes / Text",type:"notes",title:"Notes"}
 };
 
-const DEFAULTS = {
-  "left-1": PANEL_SOURCES.traffic,
-  "center-top": PANEL_SOURCES.ventusky,
-  "right-top": PANEL_SOURCES.nws
+const DEFAULTS={
+  "left-1":{...PANEL_SOURCES.traffic},
+  "center-top":{...PANEL_SOURCES.ventusky},
+  "right-top":{...PANEL_SOURCES.nws}
 };
 
-let config = JSON.parse(localStorage.getItem("dashboardConfig")) || structuredClone(DEFAULTS);
-function save(){ localStorage.setItem("dashboardConfig", JSON.stringify(config)); }
+let config=JSON.parse(localStorage.getItem("dashboardConfig"))||structuredClone(DEFAULTS);
+function save(){localStorage.setItem("dashboardConfig",JSON.stringify(config));}
 
+/* ===== RENDER ===== */
 function render(){
   document.querySelectorAll(".panel").forEach(p=>{
-    const id=p.dataset.id, c=config[id]||{};
-    const hasLink = !!c.src;
+    const id=p.dataset.id;
+    const c=config[id]||{};
+    const actions=[];
+    if(c.type==="iframe" && c.src){
+      actions.push(`<span class="panel-action" onclick="refreshPanel('${id}')">⟳</span>`);
+      actions.push(`<span class="panel-action" onclick="openPanel('${id}')">↗</span>`);
+    }
+    actions.push(`<span class="panel-action" onclick="edit('${id}')">✏</span>`);
+
+    let body="";
+    if(c.type==="notes"){
+      body=`<div class="notes-display">${c.text||""}</div>`;
+    }else if(c.src){
+      body=`<iframe src="${c.src}" loading="lazy"></iframe>`;
+    }
 
     p.innerHTML=`
       <div class="panel-header">
         <span>${c.title||""}</span>
-        <span class="panel-actions">
-          ${hasLink ? `<span class="panel-action" onclick="openPanel('${id}')">↗</span>` : ""}
-          <span class="panel-action" onclick="edit('${id}')">✏</span>
-        </span>
+        <span class="panel-actions">${actions.join("")}</span>
       </div>
-      <div class="panel-body">
-        ${c.src?`<iframe src="${c.src}" loading="lazy"></iframe>`:""}
-      </div>`;
+      <div class="panel-body">${body}</div>`;
   });
 }
 
+function refreshPanel(id){
+  const p=document.querySelector(`[data-id="${id}"] iframe`);
+  if(p){p.src=p.src;}
+}
 function openPanel(id){
-  const c = config[id];
-  if(c && c.src){
-    window.open(c.src, "_blank", "noopener");
-  }
+  const c=config[id];
+  if(c && c.src) window.open(c.src,"_blank","noopener");
 }
 
+/* ===== EDIT ===== */
 function edit(id){
   const c=config[id]||{};
   document.querySelector(`[data-id="${id}"]`).innerHTML=`
     <div class="panel-header">Edit Panel</div>
     <div class="edit-form">
       <label>Source</label>
-      <select onchange="selectSource('${id}',this.value)">
+      <select id="source-${id}" onchange="sourceChange('${id}')">
         ${Object.entries(PANEL_SOURCES).map(([k,v])=>`<option value="${k}">${v.label}</option>`).join("")}
       </select>
-      <label>Panel Title</label>
+
+      <label>Title</label>
       <input id="title-${id}" value="${c.title||""}">
-      <label>iframe URL</label>
-      <input id="src-${id}" value="${c.src||""}">
+
+      <div id="iframe-fields-${id}">
+        <label>iframe URL</label>
+        <input id="src-${id}" value="${c.src||""}">
+      </div>
+
+      <div id="notes-fields-${id}" style="display:none">
+        <label>Notes</label>
+        <textarea class="notes-edit" id="notes-${id}">${c.text||""}</textarea>
+        <small>Notes are stored locally in your browser and are not shared or synced.</small>
+      </div>
+
       <div class="actions">
         <button class="apply" onclick="apply('${id}')">Apply</button>
         <button class="reset" onclick="resetPanel('${id}')">Reset</button>
         <button class="cancel" onclick="render()">Cancel</button>
       </div>
     </div>`;
+  sourceChange(id);
 }
 
-function selectSource(id,key){
-  const s=PANEL_SOURCES[key];
-  if(!s) return;
-  document.getElementById(`title-${id}`).value=s.title;
-  document.getElementById(`src-${id}`).value=s.src;
+function sourceChange(id){
+  const key=document.getElementById(`source-${id}`).value;
+  const src=PANEL_SOURCES[key];
+  if(!src)return;
+  document.getElementById(`title-${id}`).value=src.title||"";
+  document.getElementById(`iframe-fields-${id}`).style.display=src.type==="iframe"?"block":"none";
+  document.getElementById(`notes-fields-${id}`).style.display=src.type==="notes"?"block":"none";
+  if(src.src) document.getElementById(`src-${id}`).value=src.src;
 }
 
 function apply(id){
+  const key=document.getElementById(`source-${id}`).value;
+  const base=PANEL_SOURCES[key];
   config[id]={
+    type:base.type,
     title:document.getElementById(`title-${id}`).value,
-    src:document.getElementById(`src-${id}`).value
+    src:base.type==="iframe"?document.getElementById(`src-${id}`).value:undefined,
+    text:base.type==="notes"?document.getElementById(`notes-${id}`).value:undefined
   };
-  save();
-  render();
+  save(); render();
 }
-
 function resetPanel(id){
   if(DEFAULTS[id]) config[id]=structuredClone(DEFAULTS[id]);
   else delete config[id];
-  save();
-  render();
+  save(); render();
 }
 render();
 
-/* ===== WVDE RSS (CORS SAFE) ===== */
+/* ===== WVDE RSS (CONDENSED) ===== */
 fetch("https://api.allorigins.win/raw?url=https://wveis.k12.wv.us/closings/rss.php")
-  .then(r=>r.text())
-  .then(xml=>{
-    const doc = new DOMParser().parseFromString(xml,"text/xml");
-    const items = [...doc.querySelectorAll("item")];
-    const counties = ["Marion","Harrison","Monongalia"];
-    const matches = items.filter(i =>
-      counties.some(c => i.querySelector("title").textContent.includes(c))
-    );
+.then(r=>r.text())
+.then(xml=>{
+  const doc=new DOMParser().parseFromString(xml,"text/xml");
+  const items=[...doc.querySelectorAll("item")];
+  const counties=["Marion","Harrison","Monongalia"];
+  const rows=items.filter(i=>counties.some(c=>i.querySelector("title").textContent.includes(c)))
+    .map(i=>{
+      const title=i.querySelector("title").textContent.replace("All schools in ","");
+      const d=i.querySelector("description").textContent;
+      let status="Update";
+      if(d.includes("closed")) status="Closed";
+      else if(d.includes("delay")) status="Delay";
+      else if(d.includes("non-traditional")) status="NTI";
+      const dateMatch=d.match(/on (.+?)\./);
+      return `${title} — ${status}${dateMatch?` (${dateMatch[1]})`:""}`;
+    });
 
-    if(matches.length === 0){
-      wvdeHeader.textContent = "No county closures or delays reported.";
-      return;
-    }
-
-    wvdeHeader.innerHTML = matches.map(i => `
-      <div>
-        <a href="https://wveis.k12.wv.us/closings/" target="_blank">
-          <strong>${i.querySelector("title").textContent}</strong>
-        </a><br>
-        ${i.querySelector("description").textContent}
-      </div>
-    `).join("");
-  })
-  .catch(()=>{
-    wvdeHeader.textContent = "WVDE data unavailable.";
-  });
+  wvdeHeader.innerHTML=rows.length
+    ? `<a href="https://wveis.k12.wv.us/closings/" target="_blank">${rows.join("<br>")}</a>`
+    : "No county closures or delays reported.";
+})
+.catch(()=>wvdeHeader.textContent="WVDE data unavailable.");
 </script>
 
 </body>
