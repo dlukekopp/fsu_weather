@@ -39,11 +39,11 @@
        HEADER
     ====================== */
     .header-bar {
-      height: var(--header-height);
+      min-height: var(--header-height);
       display: grid;
       grid-template-columns: 1fr 1fr 1fr;
-      align-items: center;
-      padding: 10px 16px;
+      align-items: flex-start;
+      padding: 10px 16px 12px;
       background: rgba(2, 6, 23, 0.95);
       border-bottom: 1px solid var(--border);
     }
@@ -51,7 +51,7 @@
     .header-section {
       display: flex;
       flex-direction: column;
-      justify-content: center;
+      justify-content: flex-start;
     }
 
     .header-left {
@@ -69,7 +69,7 @@
       color: var(--muted);
       line-height: 1.4;
       padding-left: 12px;
-      max-width: 100%;
+      max-width: 90%;
     }
 
     .header-right div {
@@ -301,7 +301,7 @@
               let desc = item.querySelector("description").textContent;
 
               COUNTIES.forEach(county => {
-                const regex = new RegExp(`(${county} County)`, "gi");
+                const regex = new RegExp(\`(${county} County)\`, "gi");
                 desc = desc.replace(regex, "<strong>$1</strong>");
               });
 
