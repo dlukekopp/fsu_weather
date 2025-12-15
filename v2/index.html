@@ -210,16 +210,21 @@ function tick(){
 }
 tick(); setInterval(tick,1000);
 
-/* ===== PANEL SOURCES ===== */
-const PANEL_SOURCES={
-  iframe:{label:"Custom iframe",type:"iframe"},
+/* ===== PREDEFINED SOURCES ===== */
+const PRESETS = {
+  custom:{label:"Custom iframe",type:"iframe"},
+  traffic:{label:"Traffic Camera",type:"iframe",title:"Traffic Camera",src:"https://webcam.io/webcams/MpbQgP?embed=true"},
+  ventusky:{label:"Ventusky Radar",type:"iframe",title:"Radar (Ventusky)",src:"https://embed.ventusky.com/?p=38.98;-81.21;7&l=radar"},
+  nws:{label:"NWS RLX",type:"iframe",title:"NWS RLX",src:"https://www.weather.gov/rlx"},
+  wv511:{label:"WV 511",type:"iframe",title:"WV 511",src:"https://www.wv511.org"},
+  radio:{label:"Emergency Radio",type:"iframe",title:"Emergency Radio",src:"https://www.broadcastify.com/webPlayer/40500"},
   notes:{label:"Notes / Text",type:"notes"}
 };
 
 const DEFAULTS={
-  "left-1":{type:"iframe",title:"Traffic Camera",src:"https://webcam.io/webcams/MpbQgP?embed=true"},
-  "center-top":{type:"iframe",title:"Radar (Ventusky)",src:"https://embed.ventusky.com/?p=38.98;-81.21;7&l=radar"},
-  "right-top":{type:"iframe",title:"NWS RLX",src:"https://www.weather.gov/rlx"}
+  "left-1":{...PRESETS.traffic},
+  "center-top":{...PRESETS.ventusky},
+  "right-top":{...PRESETS.nws}
 };
 
 let config=JSON.parse(localStorage.getItem("dashboardConfig"))||structuredClone(DEFAULTS);
@@ -230,7 +235,7 @@ function render(){
   document.querySelectorAll(".panel").forEach(p=>{
     const id=p.dataset.id;
     const c=config[id]||{};
-    const isIframe=c.src;
+    const isIframe=c.type==="iframe" && c.src;
     const actions=[];
     if(isIframe){
       actions.push(`<span class="panel-action" onclick="refreshPanel('${id}')">⟳</span>`);
@@ -266,13 +271,19 @@ function openPanel(id){
 /* ===== EDIT ===== */
 function edit(id){
   const c=config[id]||{type:"iframe"};
+  const presetKey = Object.keys(PRESETS).find(k=>{
+    const p=PRESETS[k];
+    return p.type===c.type && p.src===c.src;
+  }) || "custom";
+
   document.querySelector(`[data-id="${id}"]`).innerHTML=`
     <div class="panel-header">Edit Panel</div>
     <div class="edit-form">
       <label>Source</label>
-      <select id="type-${id}" onchange="toggleFields('${id}')">
-        <option value="iframe" ${c.type==="iframe"?"selected":""}>iframe</option>
-        <option value="notes" ${c.type==="notes"?"selected":""}>Notes / Text</option>
+      <select id="preset-${id}" onchange="presetChange('${id}')">
+        ${Object.entries(PRESETS).map(([k,v])=>
+          `<option value="${k}" ${k===presetKey?"selected":""}>${v.label}</option>`
+        ).join("")}
       </select>
 
       <label>Title</label>
@@ -295,25 +306,30 @@ function edit(id){
         <button class="cancel" onclick="render()">Cancel</button>
       </div>
     </div>`;
-  toggleFields(id);
+  presetChange(id);
 }
 
-function toggleFields(id){
-  const type=document.getElementById(`type-${id}`).value;
-  document.getElementById(`iframe-${id}`).style.display=type==="iframe"?"block":"none";
-  document.getElementById(`notes-${id}`).style.display=type==="notes"?"block":"none";
+function presetChange(id){
+  const key=document.getElementById(`preset-${id}`).value;
+  const p=PRESETS[key];
+  document.getElementById(`iframe-${id}`).style.display=p.type==="iframe"?"block":"none";
+  document.getElementById(`notes-${id}`).style.display=p.type==="notes"?"block":"none";
+  if(p.title) document.getElementById(`title-${id}`).value=p.title;
+  if(p.src) document.getElementById(`src-${id}`).value=p.src;
 }
 
 function apply(id){
-  const type=document.getElementById(`type-${id}`).value;
+  const key=document.getElementById(`preset-${id}`).value;
+  const base=PRESETS[key];
   config[id]={
-    type,
+    type:base.type,
     title:document.getElementById(`title-${id}`).value,
-    src:type==="iframe"?document.getElementById(`src-${id}`).value:undefined,
-    text:type==="notes"?document.getElementById(`text-${id}`).value:undefined
+    src:base.type==="iframe"?document.getElementById(`src-${id}`).value:undefined,
+    text:base.type==="notes"?document.getElementById(`text-${id}`).value:undefined
   };
   save(); render();
 }
+
 function resetPanel(id){
   if(DEFAULTS[id]) config[id]=structuredClone(DEFAULTS[id]);
   else delete config[id];
