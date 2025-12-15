@@ -17,13 +17,25 @@ body{
   color:var(--text); font-family:Arial,sans-serif;
   display:flex; flex-direction:column;
 }
-header{
-  padding:10px 16px; border-bottom:1px solid var(--border);
-  background:#020617f2;
-}
-header h1{margin:0;font-size:18px}
-header .meta{font-size:12px;color:var(--muted)}
 
+/* HEADER */
+header{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  padding:10px 16px;
+  border-bottom:1px solid var(--border);
+  background:#020617f2;
+  gap:12px;
+}
+.header-left h1{margin:0;font-size:18px}
+.header-meta{font-size:12px;color:var(--muted)}
+.header-right{
+  font-size:12px;
+  color:var(--muted);
+  line-height:1.4;
+}
+
+/* DASHBOARD */
 .dashboard{
   flex:1; display:grid;
   grid-template-columns:var(--col1) var(--col2) var(--col3);
@@ -34,10 +46,12 @@ header .meta{font-size:12px;color:var(--muted)}
   grid-column:1; grid-row:1/span 2;
   display:grid; grid-template-rows:repeat(3,1fr); gap:var(--gap);
 }
+
+/* PANELS */
 .panel{
   background:var(--panel); border:1px solid var(--border);
   border-radius:8px; display:flex; flex-direction:column;
-  overflow:hidden; position:relative;
+  overflow:hidden;
 }
 .panel-header{
   padding:6px 10px; font-size:12px; font-weight:bold;
@@ -49,6 +63,7 @@ header .meta{font-size:12px;color:var(--muted)}
 .edit-btn{display:none;cursor:pointer;font-size:11px}
 .panel:hover .edit-btn{display:inline}
 
+/* EDIT UI */
 .edit-form{padding:10px;font-size:12px}
 .edit-form label{display:block;margin-top:6px;color:var(--muted)}
 .edit-form input, .edit-form select{
@@ -65,6 +80,7 @@ header .meta{font-size:12px;color:var(--muted)}
 .reset{background:#7c2d12;color:#fff}
 .cancel{background:#374151;color:#fff}
 
+/* FOOTER */
 footer{
   padding:8px; font-size:12px; text-align:center;
   border-top:1px solid var(--border);
@@ -78,9 +94,17 @@ footer span{opacity:.5}
 <body>
 
 <header>
-  <h1>Weather & Operations Dashboard</h1>
-  <div class="meta">
-    <span id="time12"></span> | <span id="time24"></span>
+  <div class="header-left">
+    <h1>Weather & Operations Dashboard</h1>
+    <div class="header-meta">
+      <span id="time12"></span> | <span id="time24"></span>
+    </div>
+  </div>
+
+  <div></div>
+
+  <div class="header-right" id="wvdeHeader">
+    Loading WVDE closures…
   </div>
 </header>
 
@@ -103,55 +127,32 @@ footer span{opacity:.5}
 </footer>
 
 <script>
+/* ===== CLOCK ===== */
+setInterval(()=>{
+  const n=new Date();
+  time12.textContent=n.toLocaleTimeString("en-US");
+  time24.textContent=n.toLocaleTimeString("en-GB");
+},1000);
+
 /***********************
  * PANEL SOURCE LIBRARY
- * (Easy to move to its own file later)
  ***********************/
 const PANEL_SOURCES = {
-  "": { label:"Custom", title:"", src:"" },
-
-  "traffic-cam": {
-    label:"Traffic Camera (WV)",
-    title:"Traffic Camera",
-    src:"https://webcam.io/webcams/MpbQgP?embed=true"
-  },
-
-  "ventusky": {
-    label:"Ventusky Radar (HRRR)",
-    title:"Radar (Ventusky)",
-    src:"https://embed.ventusky.com/?p=38.98;-81.21;7&l=radar"
-  },
-
-  "nws-rlx": {
-    label:"NWS RLX",
-    title:"NWS Forecast Office",
-    src:"https://www.weather.gov/rlx"
-  },
-
-  "wv-511": {
-    label:"WV 511",
-    title:"Road Conditions",
-    src:"https://www.wv511.org"
-  },
-
-  "broadcastify": {
-    label:"Emergency Radio",
-    title:"Emergency Radio",
-    src:"https://www.broadcastify.com/webPlayer/40500"
-  }
+  "":{label:"Custom",title:"",src:""},
+  "traffic":{label:"Traffic Camera",title:"Traffic Camera",src:"https://webcam.io/webcams/MpbQgP?embed=true"},
+  "ventusky":{label:"Ventusky Radar",title:"Radar (Ventusky)",src:"https://embed.ventusky.com/?p=38.98;-81.21;7&l=radar"},
+  "nws":{label:"NWS RLX",title:"NWS RLX",src:"https://www.weather.gov/rlx"},
+  "wv511":{label:"WV 511",title:"WV 511",src:"https://www.wv511.org"},
+  "radio":{label:"Emergency Radio",title:"Emergency Radio",src:"https://www.broadcastify.com/webPlayer/40500"}
 };
 
-/***********************
- * DEFAULT PANEL CONFIG
- ***********************/
 const DEFAULTS = {
-  "left-1": PANEL_SOURCES["traffic-cam"],
-  "center-top": PANEL_SOURCES["ventusky"],
-  "right-top": PANEL_SOURCES["nws-rlx"]
+  "left-1": PANEL_SOURCES.traffic,
+  "center-top": PANEL_SOURCES.ventusky,
+  "right-top": PANEL_SOURCES.nws
 };
 
-let config = JSON.parse(localStorage.getItem("dashboardConfig"))
-  || structuredClone(DEFAULTS);
+let config = JSON.parse(localStorage.getItem("dashboardConfig")) || structuredClone(DEFAULTS);
 
 function save(){ localStorage.setItem("dashboardConfig", JSON.stringify(config)); }
 
@@ -175,17 +176,13 @@ function edit(id){
     <div class="panel-header">Edit Panel</div>
     <div class="edit-form">
       <label>Source</label>
-      <select id="src-select-${id}" onchange="selectSource('${id}',this.value)">
-        ${Object.entries(PANEL_SOURCES).map(([k,v]) =>
-          `<option value="${k}">${v.label}</option>`).join("")}
+      <select onchange="selectSource('${id}',this.value)">
+        ${Object.entries(PANEL_SOURCES).map(([k,v])=>`<option value="${k}">${v.label}</option>`).join("")}
       </select>
-
       <label>Panel Title</label>
       <input id="title-${id}" value="${c.title||""}">
-
       <label>iframe URL</label>
       <input id="src-${id}" value="${c.src||""}">
-
       <div class="actions">
         <button class="apply" onclick="apply('${id}')">Apply</button>
         <button class="reset" onclick="resetPanel('${id}')">Reset</button>
@@ -196,16 +193,14 @@ function edit(id){
 
 function selectSource(id,key){
   const s=PANEL_SOURCES[key];
-  if(!s) return;
-  document.getElementById(`title-${id}`).value = s.title;
-  document.getElementById(`src-${id}`).value = s.src;
+  if(!s)return;
+  document.getElementById(`title-${id}`).value=s.title;
+  document.getElementById(`src-${id}`).value=s.src;
 }
 
 function apply(id){
-  config[id]={
-    title:document.getElementById(`title-${id}`).value,
-    src:document.getElementById(`src-${id}`).value
-  };
+  config[id]={title:document.getElementById(`title-${id}`).value,
+              src:document.getElementById(`src-${id}`).value};
   save(); render();
 }
 
@@ -215,14 +210,34 @@ function resetPanel(id){
   save(); render();
 }
 
-/* CLOCK */
-setInterval(()=>{
-  const n=new Date();
-  time12.textContent=n.toLocaleTimeString("en-US");
-  time24.textContent=n.toLocaleTimeString("en-GB");
-},1000);
-
 render();
+
+/***********************
+ * WVDE RSS (HEADER)
+ ***********************/
+fetch("https://wveis.k12.wv.us/closings/rss.php")
+  .then(r=>r.text())
+  .then(xml=>{
+    const doc=new DOMParser().parseFromString(xml,"text/xml");
+    const items=[...doc.querySelectorAll("item")];
+    const counties=["Marion","Harrison","Monongalia"];
+    const matches=items.filter(i=>counties.some(c=>i.querySelector("title").textContent.includes(c)));
+
+    if(matches.length===0){
+      wvdeHeader.textContent="No county closures or delays reported.";
+      return;
+    }
+
+    wvdeHeader.innerHTML=matches.map(i=>{
+      return `<div>
+        <strong>${i.querySelector("title").textContent}</strong><br>
+        ${i.querySelector("description").textContent}
+      </div>`;
+    }).join("");
+  })
+  .catch(()=>{
+    wvdeHeader.textContent="WVDE data unavailable.";
+  });
 </script>
 
 </body>
