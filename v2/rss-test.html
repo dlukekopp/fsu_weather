@@ -1,134 +1,38 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>WVDE RSS Feed Test</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+<script>
+  const FEED_URL =
+    "https://api.allorigins.win/raw?url=https://wveis.k12.wv.us/closings/rss.php";
 
-  <style>
-    body {
-      margin: 0;
-      padding: 20px;
-      background: #0b1220;
-      color: #ffffff;
-      font-family: Arial, sans-serif;
-    }
+  const COUNTIES = ["Marion", "Harrison", "Monongalia"];
 
-    h1 {
-      margin-top: 0;
-    }
+  fetch(FEED_URL)
+    .then(res => res.text())
+    .then(xmlText => {
+      const parser = new DOMParser();
+      const xml = parser.parseFromString(xmlText, "application/xml");
 
-    .status {
-      padding: 10px;
-      margin-bottom: 16px;
-      border: 1px solid #1e293b;
-      border-radius: 6px;
-      background: #020617;
-    }
+      const items = Array.from(xml.querySelectorAll("item"));
 
-    .ok { color: #4ade80; }
-    .warn { color: #facc15; }
-    .err { color: #f87171; }
-
-    .item {
-      border: 1px solid #1e293b;
-      border-radius: 6px;
-      padding: 10px;
-      margin-bottom: 10px;
-      background: #020617;
-    }
-
-    .title {
-      font-weight: bold;
-      margin-bottom: 6px;
-    }
-
-    .desc {
-      font-size: 14px;
-      opacity: 0.9;
-    }
-
-    .match {
-      border-left: 4px solid #4ade80;
-    }
-
-    .nomatch {
-      border-left: 4px solid #475569;
-    }
-
-    code {
-      background: #020617;
-      padding: 2px 6px;
-      border-radius: 4px;
-    }
-  </style>
-</head>
-
-<body>
-
-  <h1>WVDE Closings RSS – Diagnostic Test</h1>
-
-  <div class="status" id="status">
-    Loading RSS feed…
-  </div>
-
-  <div id="results"></div>
-
-  <script>
-    const FEED_URL =
-      "https://api.rss2json.com/v1/api.json?rss_url=https://wveis.k12.wv.us/closings/rss.php";
-
-    const COUNTIES = ["Marion", "Harrison", "Monongalia"];
-
-    const statusEl = document.getElementById("status");
-    const resultsEl = document.getElementById("results");
-
-    fetch(FEED_URL)
-      .then(res => res.json())
-      .then(data => {
-        if (!data || !Array.isArray(data.items)) {
-          statusEl.innerHTML =
-            "<span class='err'>❌ RSS loaded, but no items array found.</span>";
-          console.log("Raw response:", data);
-          return;
-        }
-
-        statusEl.innerHTML =
-          `<span class="ok">✅ RSS loaded successfully.</span><br>
-           Items returned: <code>${data.items.length}</code>`;
-
-        data.items.forEach(item => {
-          const title = item.title || "";
-          const description = item.description || "";
-
-          const matchedCounties = COUNTIES.filter(c =>
-            title.toLowerCase().includes(c.toLowerCase())
-          );
-
-          const div = document.createElement("div");
-          div.className = "item " + (matchedCounties.length ? "match" : "nomatch");
-
-          div.innerHTML = `
-            <div class="title">${title}</div>
-            <div class="desc">${description}</div>
-            <div style="margin-top:6px;font-size:12px;">
-              Match: ${
-                matchedCounties.length
-                  ? `<span class="ok">${matchedCounties.join(", ")}</span>`
-                  : "<span class='warn'>None</span>"
-              }
-            </div>
-          `;
-
-          resultsEl.appendChild(div);
-        });
-      })
-      .catch(err => {
-        statusEl.innerHTML =
-          "<span class='err'>❌ Failed to load RSS feed.</span>";
-        console.error("Fetch error:", err);
+      const matches = items.filter(item => {
+        const title = item.querySelector("title")?.textContent || "";
+        return COUNTIES.some(county =>
+          title.toLowerCase().includes(county.toLowerCase())
+        );
       });
-  </script>
 
-</body>
-</html>
+      if (matches.length === 0) {
+        console.log("No closings for target counties.");
+        return;
+      }
+
+      matches.forEach(item => {
+        const title = item.querySelector("title").textContent;
+        const description = item.querySelector("description").textContent;
+
+        console.log("MATCH:", title);
+        console.log(description);
+      });
+    })
+    .catch(err => {
+      console.error("Failed to load WVDE RSS:", err);
+    });
+</script>
