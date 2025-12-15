@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>WVDE RSS Minimal Test</title>
+</head>
+
+<body style="font-family: Arial, sans-serif; padding: 20px;">
+
+  <h1>WVDE RSS Test</h1>
+  <div id="output">Loading feed…</div>
+
+  <script>
+    const FEED_URL =
+      "https://api.allorigins.win/raw?url=https://wveis.k12.wv.us/closings/rss.php";
+
+    const COUNTIES = ["Marion", "Harrison", "Monongalia"];
+    const output = document.getElementById("output");
+
+    fetch(FEED_URL)
+      .then(res => res.text())
+      .then(xmlText => {
+        const parser = new DOMParser();
+        const xml = parser.parseFromString(xmlText, "application/xml");
+
+        const items = Array.from(xml.querySelectorAll("item"));
+
+        if (items.length === 0) {
+          output.textContent = "RSS loaded, but no items found.";
+          return;
+        }
+
+        const matches = items.filter(item => {
+          const title = item.querySelector("title")?.textContent || "";
+          return COUNTIES.some(c =>
+            title.toLowerCase().includes(c.toLowerCase())
+          );
+        });
+
+        if (matches.length === 0) {
+          output.textContent =
+            "RSS loaded, but no matching counties found.";
+          return;
+        }
+
+        output.innerHTML = "";
+
+        matches.forEach(item => {
+          const p = document.createElement("p");
+          p.innerHTML = `<strong>${item.querySelector("title").textContent}</strong><br>
+                         ${item.querySelector("description").textContent}`;
+          output.appendChild(p);
+        });
+      })
+      .catch(err => {
+        output.textContent = "Fetch failed. Check console.";
+        console.error(err);
+      });
+  </script>
+
+</body>
+</html>
