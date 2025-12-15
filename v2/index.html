@@ -94,11 +94,7 @@ body{
 .panel-action:hover{opacity:1}
 
 .panel-body{flex:1;padding:6px}
-.panel-body iframe{
-  width:100%;
-  height:100%;
-  border:none;
-}
+.panel-body iframe{width:100%;height:100%;border:none}
 
 /* ===== NOTES ===== */
 .notes-display{
@@ -180,10 +176,7 @@ footer span{opacity:.5}
       Refresh in <span id="refreshCountdown"></span>s
     </div>
   </div>
-
-  <div class="header-right" id="wvdeHeader">
-    Loading WVDE closures…
-  </div>
+  <div class="header-right" id="wvdeHeader">Loading WVDE closures…</div>
 </header>
 
 <div class="dashboard">
@@ -205,7 +198,7 @@ footer span{opacity:.5}
 </footer>
 
 <script>
-/* ===== CLOCK + REFRESH ===== */
+/* ===== CLOCK ===== */
 const REFRESH_INTERVAL=600;
 let remaining=REFRESH_INTERVAL;
 function tick(){
@@ -215,24 +208,18 @@ function tick(){
   refreshCountdown.textContent=remaining;
   if(--remaining<0) location.reload();
 }
-tick();
-setInterval(tick,1000);
+tick(); setInterval(tick,1000);
 
 /* ===== PANEL SOURCES ===== */
 const PANEL_SOURCES={
-  "":{label:"Custom iframe",type:"iframe"},
-  "traffic":{label:"Traffic Camera",type:"iframe",title:"Traffic Camera",src:"https://webcam.io/webcams/MpbQgP?embed=true"},
-  "ventusky":{label:"Ventusky Radar",type:"iframe",title:"Radar (Ventusky)",src:"https://embed.ventusky.com/?p=38.98;-81.21;7&l=radar"},
-  "nws":{label:"NWS RLX",type:"iframe",title:"NWS RLX",src:"https://www.weather.gov/rlx"},
-  "wv511":{label:"WV 511",type:"iframe",title:"WV 511",src:"https://www.wv511.org"},
-  "radio":{label:"Emergency Radio",type:"iframe",title:"Emergency Radio",src:"https://www.broadcastify.com/webPlayer/40500"},
-  "notes":{label:"Notes / Text",type:"notes",title:"Notes"}
+  iframe:{label:"Custom iframe",type:"iframe"},
+  notes:{label:"Notes / Text",type:"notes"}
 };
 
 const DEFAULTS={
-  "left-1":{...PANEL_SOURCES.traffic},
-  "center-top":{...PANEL_SOURCES.ventusky},
-  "right-top":{...PANEL_SOURCES.nws}
+  "left-1":{type:"iframe",title:"Traffic Camera",src:"https://webcam.io/webcams/MpbQgP?embed=true"},
+  "center-top":{type:"iframe",title:"Radar (Ventusky)",src:"https://embed.ventusky.com/?p=38.98;-81.21;7&l=radar"},
+  "right-top":{type:"iframe",title:"NWS RLX",src:"https://www.weather.gov/rlx"}
 };
 
 let config=JSON.parse(localStorage.getItem("dashboardConfig"))||structuredClone(DEFAULTS);
@@ -243,8 +230,9 @@ function render(){
   document.querySelectorAll(".panel").forEach(p=>{
     const id=p.dataset.id;
     const c=config[id]||{};
+    const isIframe=c.src;
     const actions=[];
-    if(c.type==="iframe" && c.src){
+    if(isIframe){
       actions.push(`<span class="panel-action" onclick="refreshPanel('${id}')">⟳</span>`);
       actions.push(`<span class="panel-action" onclick="openPanel('${id}')">↗</span>`);
     }
@@ -253,7 +241,7 @@ function render(){
     let body="";
     if(c.type==="notes"){
       body=`<div class="notes-display">${c.text||""}</div>`;
-    }else if(c.src){
+    }else if(isIframe){
       body=`<iframe src="${c.src}" loading="lazy"></iframe>`;
     }
 
@@ -267,36 +255,37 @@ function render(){
 }
 
 function refreshPanel(id){
-  const p=document.querySelector(`[data-id="${id}"] iframe`);
-  if(p){p.src=p.src;}
+  const f=document.querySelector(`[data-id="${id}"] iframe`);
+  if(f) f.src=f.src;
 }
 function openPanel(id){
   const c=config[id];
-  if(c && c.src) window.open(c.src,"_blank","noopener");
+  if(c?.src) window.open(c.src,"_blank","noopener");
 }
 
 /* ===== EDIT ===== */
 function edit(id){
-  const c=config[id]||{};
+  const c=config[id]||{type:"iframe"};
   document.querySelector(`[data-id="${id}"]`).innerHTML=`
     <div class="panel-header">Edit Panel</div>
     <div class="edit-form">
       <label>Source</label>
-      <select id="source-${id}" onchange="sourceChange('${id}')">
-        ${Object.entries(PANEL_SOURCES).map(([k,v])=>`<option value="${k}">${v.label}</option>`).join("")}
+      <select id="type-${id}" onchange="toggleFields('${id}')">
+        <option value="iframe" ${c.type==="iframe"?"selected":""}>iframe</option>
+        <option value="notes" ${c.type==="notes"?"selected":""}>Notes / Text</option>
       </select>
 
       <label>Title</label>
       <input id="title-${id}" value="${c.title||""}">
 
-      <div id="iframe-fields-${id}">
+      <div id="iframe-${id}">
         <label>iframe URL</label>
         <input id="src-${id}" value="${c.src||""}">
       </div>
 
-      <div id="notes-fields-${id}" style="display:none">
+      <div id="notes-${id}">
         <label>Notes</label>
-        <textarea class="notes-edit" id="notes-${id}">${c.text||""}</textarea>
+        <textarea class="notes-edit" id="text-${id}">${c.text||""}</textarea>
         <small>Notes are stored locally in your browser and are not shared or synced.</small>
       </div>
 
@@ -306,27 +295,22 @@ function edit(id){
         <button class="cancel" onclick="render()">Cancel</button>
       </div>
     </div>`;
-  sourceChange(id);
+  toggleFields(id);
 }
 
-function sourceChange(id){
-  const key=document.getElementById(`source-${id}`).value;
-  const src=PANEL_SOURCES[key];
-  if(!src)return;
-  document.getElementById(`title-${id}`).value=src.title||"";
-  document.getElementById(`iframe-fields-${id}`).style.display=src.type==="iframe"?"block":"none";
-  document.getElementById(`notes-fields-${id}`).style.display=src.type==="notes"?"block":"none";
-  if(src.src) document.getElementById(`src-${id}`).value=src.src;
+function toggleFields(id){
+  const type=document.getElementById(`type-${id}`).value;
+  document.getElementById(`iframe-${id}`).style.display=type==="iframe"?"block":"none";
+  document.getElementById(`notes-${id}`).style.display=type==="notes"?"block":"none";
 }
 
 function apply(id){
-  const key=document.getElementById(`source-${id}`).value;
-  const base=PANEL_SOURCES[key];
+  const type=document.getElementById(`type-${id}`).value;
   config[id]={
-    type:base.type,
+    type,
     title:document.getElementById(`title-${id}`).value,
-    src:base.type==="iframe"?document.getElementById(`src-${id}`).value:undefined,
-    text:base.type==="notes"?document.getElementById(`notes-${id}`).value:undefined
+    src:type==="iframe"?document.getElementById(`src-${id}`).value:undefined,
+    text:type==="notes"?document.getElementById(`text-${id}`).value:undefined
   };
   save(); render();
 }
@@ -337,7 +321,7 @@ function resetPanel(id){
 }
 render();
 
-/* ===== WVDE RSS (CONDENSED) ===== */
+/* ===== WVDE RSS ===== */
 fetch("https://api.allorigins.win/raw?url=https://wveis.k12.wv.us/closings/rss.php")
 .then(r=>r.text())
 .then(xml=>{
@@ -346,14 +330,14 @@ fetch("https://api.allorigins.win/raw?url=https://wveis.k12.wv.us/closings/rss.p
   const counties=["Marion","Harrison","Monongalia"];
   const rows=items.filter(i=>counties.some(c=>i.querySelector("title").textContent.includes(c)))
     .map(i=>{
-      const title=i.querySelector("title").textContent.replace("All schools in ","");
+      const county=i.querySelector("title").textContent.replace("All schools in ","");
       const d=i.querySelector("description").textContent;
       let status="Update";
       if(d.includes("closed")) status="Closed";
       else if(d.includes("delay")) status="Delay";
       else if(d.includes("non-traditional")) status="NTI";
-      const dateMatch=d.match(/on (.+?)\./);
-      return `${title} — ${status}${dateMatch?` (${dateMatch[1]})`:""}`;
+      const date=d.match(/on (.+?)\./)?.[1]||"";
+      return `${county} — ${status}${date?` (${date})`:""}`;
     });
 
   wvdeHeader.innerHTML=rows.length
