@@ -19,6 +19,7 @@
       --col-3: 25%;
 
       --header-height: 64px;
+      --footer-height: 36px;
     }
 
     * {
@@ -88,7 +89,7 @@
        DASHBOARD GRID
     ====================== */
     .dashboard {
-      height: calc(100vh - var(--header-height));
+      height: calc(100vh - var(--header-height) - var(--footer-height));
       display: grid;
       grid-template-columns: var(--col-1) var(--col-2) var(--col-3);
       grid-template-rows: 50% 50%;
@@ -121,6 +122,40 @@
     .right-bottom  { grid-column: 3; grid-row: 2; }
 
     /* =====================
+       FOOTER
+    ====================== */
+    .footer-bar {
+      height: var(--footer-height);
+      background: rgba(2, 6, 23, 0.95);
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 12px;
+    }
+
+    .footer-links {
+      font-size: 12px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .footer-links a {
+      color: var(--muted);
+      text-decoration: none;
+      padding: 0 6px;
+    }
+
+    .footer-links a:hover {
+      color: #ffffff;
+      text-decoration: underline;
+    }
+
+    .footer-links span {
+      opacity: 0.5;
+    }
+
+    /* =====================
        RESPONSIVE (BASIC)
     ====================== */
     @media (max-width: 1000px) {
@@ -136,6 +171,11 @@
 
       .column-left {
         grid-row: auto;
+      }
+
+      .footer-links {
+        white-space: normal;
+        text-align: center;
       }
     }
   </style>
@@ -184,6 +224,27 @@
 
   </div>
 
+  <!-- FOOTER -->
+  <footer class="footer-bar">
+    <nav class="footer-links">
+      <a href="https://www.fairmontstate.edu" target="_blank">FSU</a>
+      <span>|</span>
+      <a href="#" target="_blank">Emergency Info</a>
+      <span>|</span>
+      <a href="#" target="_blank">Campus Police</a>
+      <span>|</span>
+      <a href="https://www.weather.gov/rlx" target="_blank">NWS RLX</a>
+      <span>|</span>
+      <a href="https://www.weather.gov/alerts" target="_blank">NWS Alerts</a>
+      <span>|</span>
+      <a href="https://www.wv511.org" target="_blank">WV 511</a>
+      <span>|</span>
+      <a href="#" target="_blank">Weather Policy</a>
+      <span>|</span>
+      <a href="https://dhsem.wv.gov" target="_blank">WV Emergency Mgmt</a>
+    </nav>
+  </footer>
+
   <!-- TIME + REFRESH -->
   <script>
     const REFRESH_INTERVAL = 600;
@@ -206,7 +267,7 @@
     setInterval(updateCountdown, 1000);
   </script>
 
-  <!-- WVDE RSS (SAFE VERSION) -->
+  <!-- WVDE RSS (SAFE) -->
   <script>
     document.addEventListener("DOMContentLoaded", () => {
 
