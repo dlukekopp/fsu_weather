@@ -22,23 +22,19 @@
       --footer-height: 36px;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
-    /* ===== PAGE LAYOUT ===== */
     body {
       margin: 0;
       min-height: 100vh;
       background: var(--bg);
       color: var(--text);
       font-family: Arial, sans-serif;
-
       display: flex;
       flex-direction: column;
     }
 
-    /* ===== HEADER ===== */
+    /* HEADER */
     .header-bar {
       min-height: var(--header-height);
       display: grid;
@@ -52,7 +48,6 @@
     .header-section {
       display: flex;
       flex-direction: column;
-      justify-content: flex-start;
     }
 
     .header-left { align-items: flex-start; }
@@ -78,11 +73,9 @@
       color: var(--muted);
     }
 
-    .separator {
-      margin: 0 6px;
-    }
+    .separator { margin: 0 6px; }
 
-    /* ===== DASHBOARD ===== */
+    /* DASHBOARD */
     .dashboard {
       flex: 1;
       display: grid;
@@ -100,16 +93,34 @@
       gap: var(--gap);
     }
 
+    /* PANEL STRUCTURE */
     .panel {
       background: var(--panel);
       border: 1px solid var(--border);
       border-radius: 8px;
       display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 15px;
-      font-weight: bold;
+      flex-direction: column;
       overflow: hidden;
+    }
+
+    .panel-header {
+      padding: 6px 10px;
+      font-size: 12px;
+      font-weight: bold;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,0.02);
+    }
+
+    .panel-body {
+      flex: 1;
+      position: relative;
+    }
+
+    .panel-body iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
     }
 
     .center-top    { grid-column: 2; grid-row: 1; }
@@ -117,7 +128,7 @@
     .center-bottom { grid-column: 2; grid-row: 2; }
     .right-bottom  { grid-column: 3; grid-row: 2; }
 
-    /* ===== FOOTER ===== */
+    /* FOOTER */
     .footer-bar {
       height: var(--footer-height);
       background: rgba(2, 6, 23, 0.95);
@@ -145,126 +156,165 @@
       text-decoration: underline;
     }
 
-    .footer-links span {
-      opacity: 0.5;
-    }
+    .footer-links span { opacity: 0.5; }
   </style>
 </head>
 
 <body>
 
-  <!-- HEADER -->
-  <header class="header-bar">
+<!-- HEADER -->
+<header class="header-bar">
 
-    <div class="header-section header-left">
-      <div class="header-title">Weather & Operations Dashboard</div>
-      <div class="header-meta">
-        <span id="time12">--:--:--</span>
-        <span class="separator">|</span>
-        <span id="time24">--:--:--</span>
-        <span class="separator">•</span>
-        Refresh in <span id="refreshCountdown">--</span>s
-      </div>
+  <div class="header-section header-left">
+    <div class="header-title">Weather & Operations Dashboard</div>
+    <div class="header-meta">
+      <span id="time12">--:--:--</span>
+      <span class="separator">|</span>
+      <span id="time24">--:--:--</span>
+      <span class="separator">•</span>
+      Refresh in <span id="refreshCountdown">--</span>s
     </div>
-
-    <div class="header-section header-center"></div>
-
-    <div class="header-section header-right" id="wvdeHeader"></div>
-
-  </header>
-
-  <!-- DASHBOARD -->
-  <div class="dashboard">
-    <div class="column-left">
-      <div class="panel">LEFT 1</div>
-      <div class="panel">LEFT 2</div>
-      <div class="panel">LEFT 3</div>
-    </div>
-
-    <div class="panel center-top">CENTER TOP</div>
-    <div class="panel right-top">RIGHT TOP</div>
-    <div class="panel center-bottom">CENTER BOTTOM</div>
-    <div class="panel right-bottom">RIGHT BOTTOM</div>
   </div>
 
-  <!-- FOOTER -->
-  <footer class="footer-bar">
-    <nav class="footer-links">
-      <a href="https://www.fairmontstate.edu" target="_blank">FSU</a>
-      <span>|</span>
-      <a href="#" target="_blank">Emergency Info</a>
-      <span>|</span>
-      <a href="#" target="_blank">Campus Police</a>
-      <span>|</span>
-      <a href="https://www.weather.gov/rlx" target="_blank">NWS RLX</a>
-      <span>|</span>
-      <a href="https://www.weather.gov/alerts" target="_blank">NWS Alerts</a>
-      <span>|</span>
-      <a href="https://www.wv511.org" target="_blank">WV 511</a>
-      <span>|</span>
-      <a href="#" target="_blank">Weather Policy</a>
-      <span>|</span>
-      <a href="https://dhsem.wv.gov" target="_blank">WV Emergency Mgmt</a>
-    </nav>
-  </footer>
+  <div class="header-section header-center"></div>
 
-  <!-- TIME + REFRESH -->
-  <script>
-    const REFRESH_INTERVAL = 600;
-    let remaining = REFRESH_INTERVAL;
+  <div class="header-section header-right" id="wvdeHeader"></div>
 
-    function updateTime() {
-      const now = new Date();
-      document.getElementById("time12").textContent =
-        now.toLocaleTimeString("en-US");
-      document.getElementById("time24").textContent =
-        now.toLocaleTimeString("en-GB");
+</header>
+
+<!-- DASHBOARD -->
+<div class="dashboard">
+
+  <!-- LEFT COLUMN -->
+  <div class="column-left">
+    <div class="panel" data-panel-id="left-1">
+      <div class="panel-header"></div>
+      <div class="panel-body"></div>
+    </div>
+
+    <div class="panel" data-panel-id="left-2">
+      <div class="panel-header"></div>
+      <div class="panel-body"></div>
+    </div>
+
+    <div class="panel" data-panel-id="left-3">
+      <div class="panel-header"></div>
+      <div class="panel-body"></div>
+    </div>
+  </div>
+
+  <!-- CENTER / RIGHT -->
+  <div class="panel center-top" data-panel-id="center-top">
+    <div class="panel-header"></div>
+    <div class="panel-body"></div>
+  </div>
+
+  <div class="panel right-top" data-panel-id="right-top">
+    <div class="panel-header"></div>
+    <div class="panel-body"></div>
+  </div>
+
+  <div class="panel center-bottom" data-panel-id="center-bottom">
+    <div class="panel-header"></div>
+    <div class="panel-body"></div>
+  </div>
+
+  <div class="panel right-bottom" data-panel-id="right-bottom">
+    <div class="panel-header"></div>
+    <div class="panel-body"></div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<footer class="footer-bar">
+  <nav class="footer-links">
+    <a href="https://www.fairmontstate.edu" target="_blank">FSU</a>
+    <span>|</span>
+    <a href="#">Emergency Info</a>
+    <span>|</span>
+    <a href="#">Campus Police</a>
+    <span>|</span>
+    <a href="https://www.weather.gov/rlx" target="_blank">NWS RLX</a>
+    <span>|</span>
+    <a href="https://www.weather.gov/alerts" target="_blank">NWS Alerts</a>
+    <span>|</span>
+    <a href="https://www.wv511.org" target="_blank">WV 511</a>
+    <span>|</span>
+    <a href="#">Weather Policy</a>
+    <span>|</span>
+    <a href="https://dhsem.wv.gov" target="_blank">WV Emergency Mgmt</a>
+  </nav>
+</footer>
+
+<!-- TIME + REFRESH -->
+<script>
+  const REFRESH_INTERVAL = 600;
+  let remaining = REFRESH_INTERVAL;
+
+  function updateTime() {
+    const now = new Date();
+    document.getElementById("time12").textContent = now.toLocaleTimeString("en-US");
+    document.getElementById("time24").textContent = now.toLocaleTimeString("en-GB");
+  }
+
+  function updateCountdown() {
+    document.getElementById("refreshCountdown").textContent = remaining;
+    remaining--;
+    if (remaining < 0) location.reload();
+  }
+
+  updateTime();
+  updateCountdown();
+  setInterval(updateTime, 1000);
+  setInterval(updateCountdown, 1000);
+</script>
+
+<!-- PANEL CONFIG + LOADER -->
+<script>
+  const panelConfig = {
+    "left-1": {
+      title: "Traffic Camera",
+      type: "iframe",
+      src: "https://webcam.io/webcams/MpbQgP?embed=true"
+    },
+    "center-top": {
+      title: "Radar (Ventusky)",
+      type: "iframe",
+      src: "https://embed.ventusky.com/?p=38.98;-81.21;7&l=radar"
+    },
+    "right-top": {
+      title: "NWS Forecast Office",
+      type: "iframe",
+      src: "https://www.weather.gov/rlx/"
     }
+  };
 
-    function updateCountdown() {
-      document.getElementById("refreshCountdown").textContent = remaining;
-      remaining--;
-      if (remaining < 0) location.reload();
-    }
+  function loadPanels(config) {
+    Object.entries(config).forEach(([id, panel]) => {
+      const panelEl = document.querySelector(`[data-panel-id="${id}"]`);
+      if (!panelEl) return;
 
-    updateTime();
-    updateCountdown();
-    setInterval(updateTime, 1000);
-    setInterval(updateCountdown, 1000);
-  </script>
+      panelEl.querySelector(".panel-header").textContent = panel.title || "";
 
-  <!-- WVDE RSS (Simple / Stable) -->
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
+      const body = panelEl.querySelector(".panel-body");
+      body.innerHTML = "";
 
-      const FEED_URL =
-        "https://api.allorigins.win/raw?url=https://wveis.k12.wv.us/closings/rss.php";
+      if (panel.type === "iframe" && panel.src) {
+        const iframe = document.createElement("iframe");
+        iframe.src = panel.src;
+        iframe.loading = "lazy";
+        body.appendChild(iframe);
+      }
 
-      const COUNTIES = ["Marion", "Harrison", "Monongalia"];
-      const headerEl = document.getElementById("wvdeHeader");
-
-      fetch(FEED_URL)
-        .then(res => res.text())
-        .then(xmlText => {
-          const xml = new DOMParser().parseFromString(xmlText, "application/xml");
-          const items = Array.from(xml.querySelectorAll("item"));
-
-          const matches = items.filter(item => {
-            const title = item.querySelector("title")?.textContent || "";
-            return COUNTIES.some(c => title.includes(c));
-          });
-
-          if (matches.length === 0) return;
-
-          headerEl.innerHTML =
-            "<strong>School Closings:</strong>" +
-            matches.map(item =>
-              `<div>${item.querySelector("description").textContent}</div>`
-            ).join("");
-        })
-        .catch(err => console.error("WVDE RSS error:", err));
+      if (panel.type === "html" && panel.content) {
+        body.innerHTML = panel.content;
+      }
     });
-  </script>
+  }
+
+  loadPanels(panelConfig);
+</script>
 
 </body>
 </html>
