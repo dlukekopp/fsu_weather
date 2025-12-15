@@ -7,30 +7,73 @@
 
 <style>
 :root{
-  --bg:#0b1220; --panel:#020617; --border:#1e293b;
-  --text:#fff; --muted:rgba(255,255,255,.7);
-  --gap:8px; --col1:35%; --col2:40%; --col3:25%;
-  --header-height:64px; --footer-height:36px;
-}
-*{box-sizing:border-box}
-body{
-  margin:0; min-height:100vh; background:var(--bg);
-  color:var(--text); font-family:Arial,sans-serif;
-  display:flex; flex-direction:column;
+  --bg:#0b1220;
+  --panel:#020617;
+  --border:#1e293b;
+  --text:#ffffff;
+  --muted:rgba(255,255,255,.7);
+  --accent:#93c5fd;
+  --gap:8px;
+
+  --col1:35%;
+  --col2:40%;
+  --col3:25%;
+
+  --footer-height:36px;
 }
 
-/* ===== HEADER ===== */
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  min-height:100vh;
+  background:var(--bg);
+  color:var(--text);
+  font-family:Arial,sans-serif;
+  display:flex;
+  flex-direction:column;
+}
+
+/* ================= HEADER ================= */
+
 .header-bar{
-  min-height:var(--header-height);
   display:grid;
   grid-template-columns:1fr 1fr;
   padding:10px 16px;
   background:#020617f2;
   border-bottom:1px solid var(--border);
 }
-.header-left{display:flex;flex-direction:column}
-.header-title{font-size:18px;font-weight:700}
-.header-meta{font-size:12px;color:var(--muted);margin-top:4px}
+
+.header-left{
+  display:flex;
+  flex-direction:column;
+}
+
+.header-title{
+  font-size:18px;
+  font-weight:700;
+}
+
+.header-meta{
+  font-size:12px;
+  color:var(--muted);
+  margin-top:4px;
+}
+
+.header-controls{
+  font-size:12px;
+  margin-top:4px;
+  color:var(--accent);
+}
+
+.header-controls span{
+  cursor:pointer;
+}
+
+.header-controls span:hover{
+  text-decoration:underline;
+}
+
 .separator{margin:0 6px}
 
 .header-right{
@@ -41,10 +84,18 @@ body{
   justify-self:end;
   text-align:right;
 }
-.header-right a{color:var(--text);text-decoration:none}
-.header-right a:hover{text-decoration:underline}
 
-/* ===== DASHBOARD ===== */
+.header-right a{
+  color:var(--text);
+  text-decoration:none;
+}
+
+.header-right a:hover{
+  text-decoration:underline;
+}
+
+/* ================= DASHBOARD ================= */
+
 .dashboard{
   flex:1;
   display:grid;
@@ -53,15 +104,17 @@ body{
   gap:var(--gap);
   padding:var(--gap);
 }
+
 .column-left{
   grid-column:1;
-  grid-row:1/span 2;
+  grid-row:1 / span 2;
   display:grid;
   grid-template-rows:repeat(3,1fr);
   gap:var(--gap);
 }
 
-/* ===== PANELS ===== */
+/* ================= PANELS ================= */
+
 .panel{
   background:var(--panel);
   border:1px solid var(--border);
@@ -70,6 +123,7 @@ body{
   flex-direction:column;
   overflow:hidden;
 }
+
 .panel-header{
   padding:6px 10px;
   font-size:12px;
@@ -80,74 +134,46 @@ body{
   justify-content:space-between;
   align-items:center;
 }
+
 .panel-actions{
   display:flex;
   gap:8px;
 }
+
 .panel-action{
   display:none;
   cursor:pointer;
   font-size:12px;
   opacity:.7;
 }
-.panel:hover .panel-action{display:inline}
+
+body.interactive .panel:hover .panel-action{
+  display:inline;
+}
+
 .panel-action:hover{opacity:1}
 
-.panel-body{flex:1;padding:6px}
-.panel-body iframe{width:100%;height:100%;border:none}
+.panel-body{
+  flex:1;
+  padding:6px;
+}
 
-/* ===== NOTES ===== */
+.panel-body iframe{
+  width:100%;
+  height:100%;
+  border:none;
+}
+
+/* ================= NOTES ================= */
+
 .notes-display{
   font-size:13px;
   white-space:pre-wrap;
   color:#e5e7eb;
 }
-.notes-edit{
-  width:100%;
-  height:100%;
-  background:#020617;
-  color:#fff;
-  border:1px solid var(--border);
-  border-radius:4px;
-  padding:6px;
-  resize:none;
-}
 
-/* ===== EDIT UI ===== */
-.edit-form{padding:10px;font-size:12px}
-.edit-form label{display:block;margin-top:6px;color:var(--muted)}
-.edit-form input, .edit-form select{
-  width:100%;
-  padding:6px;
-  margin-top:2px;
-  background:#020617;
-  color:#fff;
-  border:1px solid var(--border);
-  border-radius:4px;
-}
-.edit-form small{
-  display:block;
-  margin-top:6px;
-  color:var(--muted);
-}
-.actions{
-  display:flex;
-  gap:6px;
-  margin-top:10px;
-}
-.actions button{
-  flex:1;
-  padding:6px;
-  border:none;
-  border-radius:4px;
-  cursor:pointer;
-  font-size:12px;
-}
-.apply{background:#2563eb;color:#fff}
-.reset{background:#7c2d12;color:#fff}
-.cancel{background:#374151;color:#fff}
+/* ================= FOOTER ================= */
 
-/* ===== FOOTER ===== */
 footer{
   height:var(--footer-height);
   display:flex;
@@ -158,12 +184,28 @@ footer{
   font-size:12px;
   color:var(--muted);
 }
-footer a{color:var(--muted);text-decoration:none;padding:0 6px}
+
+footer a{
+  color:var(--muted);
+  text-decoration:none;
+  padding:0 6px;
+}
+
 footer span{opacity:.5}
+
+/* ================= MAXIMIZE VIEW ================= */
+
+body.maximize .panel-header{
+  display:none;
+}
+
+body.maximize footer{
+  display:none;
+}
 </style>
 </head>
 
-<body>
+<body class="interactive">
 
 <header class="header-bar">
   <div class="header-left">
@@ -175,8 +217,18 @@ footer span{opacity:.5}
       <span class="separator">•</span>
       Refresh in <span id="refreshCountdown"></span>s
     </div>
+    <div class="header-controls">
+      <span onclick="setInteractiveMode()">Interactive Mode</span>
+      <span class="separator">•</span>
+      <span onclick="setMaximizeView()">Maximize View</span>
+      <span class="separator">•</span>
+      <span onclick="resetDashboard()">Reset Dashboard</span>
+    </div>
   </div>
-  <div class="header-right" id="wvdeHeader">Loading WVDE closures…</div>
+
+  <div class="header-right" id="wvdeHeader">
+    Loading WVDE closures…
+  </div>
 </header>
 
 <div class="dashboard">
@@ -185,6 +237,7 @@ footer span{opacity:.5}
     <div class="panel" data-id="left-2"></div>
     <div class="panel" data-id="left-3"></div>
   </div>
+
   <div class="panel" data-id="center-top"></div>
   <div class="panel" data-id="right-top"></div>
   <div class="panel" data-id="center-bottom"></div>
@@ -198,169 +251,100 @@ footer span{opacity:.5}
 </footer>
 
 <script>
-/* ===== CLOCK ===== */
-const REFRESH_INTERVAL=600;
-let remaining=REFRESH_INTERVAL;
+/* ================= CLOCK ================= */
+
+const REFRESH_INTERVAL = 600;
+let remaining = REFRESH_INTERVAL;
+
 function tick(){
-  const n=new Date();
-  time12.textContent=n.toLocaleTimeString("en-US");
-  time24.textContent=n.toLocaleTimeString("en-GB");
-  refreshCountdown.textContent=remaining;
-  if(--remaining<0) location.reload();
-}
-tick(); setInterval(tick,1000);
-
-/* ===== PREDEFINED SOURCES ===== */
-const PRESETS = {
-  custom:{label:"Custom iframe",type:"iframe"},
-  traffic:{label:"Traffic Camera",type:"iframe",title:"Traffic Camera",src:"https://webcam.io/webcams/MpbQgP?embed=true"},
-  ventusky:{label:"Ventusky Radar",type:"iframe",title:"Radar (Ventusky)",src:"https://embed.ventusky.com/?p=38.98;-81.21;7&l=radar"},
-  nws:{label:"NWS RLX",type:"iframe",title:"NWS RLX",src:"https://www.weather.gov/rlx"},
-  wv511:{label:"WV 511",type:"iframe",title:"WV 511",src:"https://www.wv511.org"},
-  radio:{label:"Emergency Radio",type:"iframe",title:"Emergency Radio",src:"https://www.broadcastify.com/webPlayer/40500"},
-  notes:{label:"Notes / Text",type:"notes"}
-};
-
-const DEFAULTS={
-  "left-1":{...PRESETS.traffic},
-  "center-top":{...PRESETS.ventusky},
-  "right-top":{...PRESETS.nws}
-};
-
-let config=JSON.parse(localStorage.getItem("dashboardConfig"))||structuredClone(DEFAULTS);
-function save(){localStorage.setItem("dashboardConfig",JSON.stringify(config));}
-
-/* ===== RENDER ===== */
-function render(){
-  document.querySelectorAll(".panel").forEach(p=>{
-    const id=p.dataset.id;
-    const c=config[id]||{};
-    const isIframe=c.type==="iframe" && c.src;
-    const actions=[];
-    if(isIframe){
-      actions.push(`<span class="panel-action" onclick="refreshPanel('${id}')">⟳</span>`);
-      actions.push(`<span class="panel-action" onclick="openPanel('${id}')">↗</span>`);
-    }
-    actions.push(`<span class="panel-action" onclick="edit('${id}')">✏</span>`);
-
-    let body="";
-    if(c.type==="notes"){
-      body=`<div class="notes-display">${c.text||""}</div>`;
-    }else if(isIframe){
-      body=`<iframe src="${c.src}" loading="lazy"></iframe>`;
-    }
-
-    p.innerHTML=`
-      <div class="panel-header">
-        <span>${c.title||""}</span>
-        <span class="panel-actions">${actions.join("")}</span>
-      </div>
-      <div class="panel-body">${body}</div>`;
-  });
+  const now = new Date();
+  time12.textContent = now.toLocaleTimeString("en-US");
+  time24.textContent = now.toLocaleTimeString("en-GB");
+  refreshCountdown.textContent = remaining;
+  if(--remaining < 0) location.reload();
 }
 
-function refreshPanel(id){
-  const f=document.querySelector(`[data-id="${id}"] iframe`);
-  if(f) f.src=f.src;
-}
-function openPanel(id){
-  const c=config[id];
-  if(c?.src) window.open(c.src,"_blank","noopener");
-}
+tick();
+setInterval(tick,1000);
 
-/* ===== EDIT ===== */
-function edit(id){
-  const c=config[id]||{type:"iframe"};
-  const presetKey = Object.keys(PRESETS).find(k=>{
-    const p=PRESETS[k];
-    return p.type===c.type && p.src===c.src;
-  }) || "custom";
+/* ================= MODE MANAGEMENT ================= */
 
-  document.querySelector(`[data-id="${id}"]`).innerHTML=`
-    <div class="panel-header">Edit Panel</div>
-    <div class="edit-form">
-      <label>Source</label>
-      <select id="preset-${id}" onchange="presetChange('${id}')">
-        ${Object.entries(PRESETS).map(([k,v])=>
-          `<option value="${k}" ${k===presetKey?"selected":""}>${v.label}</option>`
-        ).join("")}
-      </select>
+function setInteractiveMode(){
+  document.body.classList.remove("maximize");
+  document.body.classList.add("interactive");
+  localStorage.setItem("dashboardMode","interactive");
 
-      <label>Title</label>
-      <input id="title-${id}" value="${c.title||""}">
-
-      <div id="iframe-${id}">
-        <label>iframe URL</label>
-        <input id="src-${id}" value="${c.src||""}">
-      </div>
-
-      <div id="notes-${id}">
-        <label>Notes</label>
-        <textarea class="notes-edit" id="text-${id}">${c.text||""}</textarea>
-        <small>Notes are stored locally in your browser and are not shared or synced.</small>
-      </div>
-
-      <div class="actions">
-        <button class="apply" onclick="apply('${id}')">Apply</button>
-        <button class="reset" onclick="resetPanel('${id}')">Reset</button>
-        <button class="cancel" onclick="render()">Cancel</button>
-      </div>
-    </div>`;
-  presetChange(id);
+  if(document.fullscreenElement){
+    document.exitFullscreen();
+  }
 }
 
-function presetChange(id){
-  const key=document.getElementById(`preset-${id}`).value;
-  const p=PRESETS[key];
-  document.getElementById(`iframe-${id}`).style.display=p.type==="iframe"?"block":"none";
-  document.getElementById(`notes-${id}`).style.display=p.type==="notes"?"block":"none";
-  if(p.title) document.getElementById(`title-${id}`).value=p.title;
-  if(p.src) document.getElementById(`src-${id}`).value=p.src;
+function setMaximizeView(){
+  document.body.classList.remove("interactive");
+  document.body.classList.add("maximize");
+  localStorage.setItem("dashboardMode","maximize");
+
+  if(!document.fullscreenElement){
+    document.documentElement.requestFullscreen().catch(()=>{});
+  }
 }
 
-function apply(id){
-  const key=document.getElementById(`preset-${id}`).value;
-  const base=PRESETS[key];
-  config[id]={
-    type:base.type,
-    title:document.getElementById(`title-${id}`).value,
-    src:base.type==="iframe"?document.getElementById(`src-${id}`).value:undefined,
-    text:base.type==="notes"?document.getElementById(`text-${id}`).value:undefined
-  };
-  save(); render();
+document.addEventListener("fullscreenchange",()=>{
+  if(!document.fullscreenElement){
+    setInteractiveMode();
+  }
+});
+
+/* ================= RESET ================= */
+
+function resetDashboard(){
+  if(confirm("Reset dashboard layout and settings?")){
+    localStorage.clear();
+    location.reload();
+  }
 }
 
-function resetPanel(id){
-  if(DEFAULTS[id]) config[id]=structuredClone(DEFAULTS[id]);
-  else delete config[id];
-  save(); render();
-}
-render();
+/* ================= LOAD MODE ================= */
 
-/* ===== WVDE RSS ===== */
+const params = new URLSearchParams(window.location.search);
+const savedMode = params.get("mode") || localStorage.getItem("dashboardMode") || "interactive";
+
+if(savedMode === "maximize"){
+  document.body.classList.add("maximize");
+  document.body.classList.remove("interactive");
+}
+
+/* ================= WVDE RSS ================= */
+
 fetch("https://api.allorigins.win/raw?url=https://wveis.k12.wv.us/closings/rss.php")
 .then(r=>r.text())
 .then(xml=>{
-  const doc=new DOMParser().parseFromString(xml,"text/xml");
-  const items=[...doc.querySelectorAll("item")];
-  const counties=["Marion","Harrison","Monongalia"];
-  const rows=items.filter(i=>counties.some(c=>i.querySelector("title").textContent.includes(c)))
+  const doc = new DOMParser().parseFromString(xml,"text/xml");
+  const items = [...doc.querySelectorAll("item")];
+  const counties = ["Marion","Harrison","Monongalia"];
+
+  const rows = items
+    .filter(i=>counties.some(c=>i.querySelector("title").textContent.includes(c)))
     .map(i=>{
-      const county=i.querySelector("title").textContent.replace("All schools in ","");
-      const d=i.querySelector("description").textContent;
-      let status="Update";
-      if(d.includes("closed")) status="Closed";
-      else if(d.includes("delay")) status="Delay";
-      else if(d.includes("non-traditional")) status="NTI";
-      const date=d.match(/on (.+?)\./)?.[1]||"";
-      return `${county} — ${status}${date?` (${date})`:""}`;
+      const county = i.querySelector("title").textContent.replace("All schools in ","");
+      const desc = i.querySelector("description").textContent;
+      let status = "Update";
+
+      if(desc.includes("closed")) status="Closed";
+      else if(desc.includes("delay")) status="Delay";
+      else if(desc.includes("non-traditional")) status="NTI";
+
+      const date = desc.match(/on (.+?)\./)?.[1] || "";
+      return `${county} — ${status}${date ? ` (${date})` : ""}`;
     });
 
-  wvdeHeader.innerHTML=rows.length
+  wvdeHeader.innerHTML = rows.length
     ? `<a href="https://wveis.k12.wv.us/closings/" target="_blank">${rows.join("<br>")}</a>`
     : "No county closures or delays reported.";
 })
-.catch(()=>wvdeHeader.textContent="WVDE data unavailable.");
+.catch(()=>{
+  wvdeHeader.textContent="WVDE data unavailable.";
+});
 </script>
 
 </body>
