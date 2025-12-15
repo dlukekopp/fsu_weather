@@ -26,16 +26,19 @@
       box-sizing: border-box;
     }
 
+    /* ===== PAGE LAYOUT ===== */
     body {
       margin: 0;
-      height: 100vh;
+      min-height: 100vh;
       background: var(--bg);
       color: var(--text);
       font-family: Arial, sans-serif;
-      overflow: hidden;
+
+      display: flex;
+      flex-direction: column;
     }
 
-    /* HEADER */
+    /* ===== HEADER ===== */
     .header-bar {
       min-height: var(--header-height);
       display: grid;
@@ -79,12 +82,12 @@
       margin: 0 6px;
     }
 
-    /* DASHBOARD GRID */
+    /* ===== DASHBOARD ===== */
     .dashboard {
-      height: calc(100vh - var(--header-height) - var(--footer-height));
+      flex: 1;
       display: grid;
       grid-template-columns: var(--col-1) var(--col-2) var(--col-3);
-      grid-template-rows: 50% 50%;
+      grid-template-rows: 1fr 1fr;
       gap: var(--gap);
       padding: var(--gap);
     }
@@ -106,6 +109,7 @@
       justify-content: center;
       font-size: 15px;
       font-weight: bold;
+      overflow: hidden;
     }
 
     .center-top    { grid-column: 2; grid-row: 1; }
@@ -113,7 +117,7 @@
     .center-bottom { grid-column: 2; grid-row: 2; }
     .right-bottom  { grid-column: 3; grid-row: 2; }
 
-    /* FOOTER */
+    /* ===== FOOTER ===== */
     .footer-bar {
       height: var(--footer-height);
       background: rgba(2, 6, 23, 0.95);
@@ -149,114 +153,118 @@
 
 <body>
 
-<header class="header-bar">
+  <!-- HEADER -->
+  <header class="header-bar">
 
-  <div class="header-section header-left">
-    <div class="header-title">Weather & Operations Dashboard</div>
-    <div class="header-meta">
-      <span id="time12">--:--:--</span>
-      <span class="separator">|</span>
-      <span id="time24">--:--:--</span>
-      <span class="separator">•</span>
-      Refresh in <span id="refreshCountdown">--</span>s
+    <div class="header-section header-left">
+      <div class="header-title">Weather & Operations Dashboard</div>
+      <div class="header-meta">
+        <span id="time12">--:--:--</span>
+        <span class="separator">|</span>
+        <span id="time24">--:--:--</span>
+        <span class="separator">•</span>
+        Refresh in <span id="refreshCountdown">--</span>s
+      </div>
     </div>
+
+    <div class="header-section header-center"></div>
+
+    <div class="header-section header-right" id="wvdeHeader"></div>
+
+  </header>
+
+  <!-- DASHBOARD -->
+  <div class="dashboard">
+    <div class="column-left">
+      <div class="panel">LEFT 1</div>
+      <div class="panel">LEFT 2</div>
+      <div class="panel">LEFT 3</div>
+    </div>
+
+    <div class="panel center-top">CENTER TOP</div>
+    <div class="panel right-top">RIGHT TOP</div>
+    <div class="panel center-bottom">CENTER BOTTOM</div>
+    <div class="panel right-bottom">RIGHT BOTTOM</div>
   </div>
 
-  <div class="header-section header-center"></div>
+  <!-- FOOTER -->
+  <footer class="footer-bar">
+    <nav class="footer-links">
+      <a href="https://www.fairmontstate.edu" target="_blank">FSU</a>
+      <span>|</span>
+      <a href="#" target="_blank">Emergency Info</a>
+      <span>|</span>
+      <a href="#" target="_blank">Campus Police</a>
+      <span>|</span>
+      <a href="https://www.weather.gov/rlx" target="_blank">NWS RLX</a>
+      <span>|</span>
+      <a href="https://www.weather.gov/alerts" target="_blank">NWS Alerts</a>
+      <span>|</span>
+      <a href="https://www.wv511.org" target="_blank">WV 511</a>
+      <span>|</span>
+      <a href="#" target="_blank">Weather Policy</a>
+      <span>|</span>
+      <a href="https://dhsem.wv.gov" target="_blank">WV Emergency Mgmt</a>
+    </nav>
+  </footer>
 
-  <div class="header-section header-right" id="wvdeHeader"></div>
+  <!-- TIME + REFRESH -->
+  <script>
+    const REFRESH_INTERVAL = 600;
+    let remaining = REFRESH_INTERVAL;
 
-</header>
+    function updateTime() {
+      const now = new Date();
+      document.getElementById("time12").textContent =
+        now.toLocaleTimeString("en-US");
+      document.getElementById("time24").textContent =
+        now.toLocaleTimeString("en-GB");
+    }
 
-<div class="dashboard">
-  <div class="column-left">
-    <div class="panel">LEFT 1</div>
-    <div class="panel">LEFT 2</div>
-    <div class="panel">LEFT 3</div>
-  </div>
+    function updateCountdown() {
+      document.getElementById("refreshCountdown").textContent = remaining;
+      remaining--;
+      if (remaining < 0) location.reload();
+    }
 
-  <div class="panel center-top">CENTER TOP</div>
-  <div class="panel right-top">RIGHT TOP</div>
-  <div class="panel center-bottom">CENTER BOTTOM</div>
-  <div class="panel right-bottom">RIGHT BOTTOM</div>
-</div>
+    updateTime();
+    updateCountdown();
+    setInterval(updateTime, 1000);
+    setInterval(updateCountdown, 1000);
+  </script>
 
-<footer class="footer-bar">
-  <nav class="footer-links">
-    <a href="https://www.fairmontstate.edu" target="_blank">FSU</a>
-    <span>|</span>
-    <a href="#" target="_blank">Emergency Info</a>
-    <span>|</span>
-    <a href="#" target="_blank">Campus Police</a>
-    <span>|</span>
-    <a href="https://www.weather.gov/rlx" target="_blank">NWS RLX</a>
-    <span>|</span>
-    <a href="https://www.weather.gov/alerts" target="_blank">NWS Alerts</a>
-    <span>|</span>
-    <a href="https://www.wv511.org" target="_blank">WV 511</a>
-    <span>|</span>
-    <a href="#" target="_blank">Weather Policy</a>
-    <span>|</span>
-    <a href="https://dhsem.wv.gov" target="_blank">WV Emergency Mgmt</a>
-  </nav>
-</footer>
+  <!-- WVDE RSS (Simple / Stable) -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
 
-<script>
-  const REFRESH_INTERVAL = 600;
-  let remaining = REFRESH_INTERVAL;
+      const FEED_URL =
+        "https://api.allorigins.win/raw?url=https://wveis.k12.wv.us/closings/rss.php";
 
-  function updateTime() {
-    const now = new Date();
-    document.getElementById("time12").textContent =
-      now.toLocaleTimeString("en-US");
-    document.getElementById("time24").textContent =
-      now.toLocaleTimeString("en-GB");
-  }
+      const COUNTIES = ["Marion", "Harrison", "Monongalia"];
+      const headerEl = document.getElementById("wvdeHeader");
 
-  function updateCountdown() {
-    document.getElementById("refreshCountdown").textContent = remaining;
-    remaining--;
-    if (remaining < 0) location.reload();
-  }
+      fetch(FEED_URL)
+        .then(res => res.text())
+        .then(xmlText => {
+          const xml = new DOMParser().parseFromString(xmlText, "application/xml");
+          const items = Array.from(xml.querySelectorAll("item"));
 
-  updateTime();
-  updateCountdown();
-  setInterval(updateTime, 1000);
-  setInterval(updateCountdown, 1000);
-</script>
+          const matches = items.filter(item => {
+            const title = item.querySelector("title")?.textContent || "";
+            return COUNTIES.some(c => title.includes(c));
+          });
 
-<script>
-  document.addEventListener("DOMContentLoaded", () => {
+          if (matches.length === 0) return;
 
-    const FEED_URL =
-      "https://api.allorigins.win/raw?url=https://wveis.k12.wv.us/closings/rss.php";
-
-    const COUNTIES = ["Marion", "Harrison", "Monongalia"];
-    const headerEl = document.getElementById("wvdeHeader");
-
-    fetch(FEED_URL)
-      .then(res => res.text())
-      .then(xmlText => {
-        const xml = new DOMParser().parseFromString(xmlText, "application/xml");
-        const items = Array.from(xml.querySelectorAll("item"));
-
-        const matches = items.filter(item => {
-          const title = item.querySelector("title")?.textContent || "";
-          return COUNTIES.some(c => title.includes(c));
-        });
-
-        if (matches.length === 0) return;
-
-        headerEl.innerHTML =
-          "<strong>School Closings:</strong>" +
-          matches.map(item =>
-            `<div>${item.querySelector("description").textContent}</div>`
-          ).join("");
-
-      })
-      .catch(err => console.error("WVDE RSS error:", err));
-  });
-</script>
+          headerEl.innerHTML =
+            "<strong>School Closings:</strong>" +
+            matches.map(item =>
+              `<div>${item.querySelector("description").textContent}</div>`
+            ).join("");
+        })
+        .catch(err => console.error("WVDE RSS error:", err));
+    });
+  </script>
 
 </body>
 </html>
