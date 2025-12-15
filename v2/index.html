@@ -8,7 +8,8 @@
 </head>
 
 <body>
-  <!-- Header Bar -->
+
+  <!-- HEADER BAR -->
   <header class="header-bar">
     <div class="header-left">
       <div class="app-title" id="dashboardTitle">Operations Dashboard</div>
@@ -20,77 +21,107 @@
     </div>
 
     <div class="header-right">
-      <button class="btn" id="toggleEditBtn" title="Toggle Edit Mode">Edit Mode</button>
-      <button class="btn" id="exportBtn" title="Export configuration JSON">Export</button>
-      <button class="btn" id="importBtn" title="Import configuration JSON">Import</button>
-      <button class="btn btn-warn" id="resetBtn" title="Reset to default layout">Reset</button>
+      <button class="btn" id="toggleEditBtn">Edit Mode</button>
+      <button class="btn" id="exportBtn">Export</button>
+      <button class="btn" id="importBtn">Import</button>
+      <button class="btn btn-warn" id="resetBtn">Reset</button>
     </div>
   </header>
 
-  <!-- Dashboard Grid -->
-  <main class="dashboard" id="dashboardGrid" aria-label="Dashboard grid">
-    <!-- Left column: 3 stacked panels -->
-    <section class="panel panel-span-2" data-panel="leftTop">
-      <div class="panel-toolbar"><span class="panel-name">Left 1</span><button class="panel-edit btn-mini" data-edit="leftTop">Edit</button></div>
-      <div class="panel-body" id="panel-leftTop"></div>
+  <!-- DASHBOARD GRID -->
+  <main class="dashboard" id="dashboardGrid">
+
+    <!-- LEFT COLUMN (3 equal panels, NOT nested panels) -->
+    <section class="column-left">
+
+      <div class="panel" data-panel="leftTop">
+        <div class="panel-toolbar">
+          <span class="panel-name">Left 1</span>
+          <button class="panel-edit btn-mini" data-edit="leftTop">Edit</button>
+        </div>
+        <div class="panel-body" id="panel-leftTop"></div>
+      </div>
+
+      <div class="panel" data-panel="leftMiddle">
+        <div class="panel-toolbar">
+          <span class="panel-name">Left 2</span>
+          <button class="panel-edit btn-mini" data-edit="leftMiddle">Edit</button>
+        </div>
+        <div class="panel-body" id="panel-leftMiddle"></div>
+      </div>
+
+      <div class="panel" data-panel="leftBottom">
+        <div class="panel-toolbar">
+          <span class="panel-name">Left 3</span>
+          <button class="panel-edit btn-mini" data-edit="leftBottom">Edit</button>
+        </div>
+        <div class="panel-body" id="panel-leftBottom"></div>
+      </div>
+
     </section>
 
-    <section class="panel panel-span-2 panel-subpanel" data-panel="leftMiddle">
-      <div class="panel-toolbar"><span class="panel-name">Left 2</span><button class="panel-edit btn-mini" data-edit="leftMiddle">Edit</button></div>
-      <div class="panel-body" id="panel-leftMiddle"></div>
-    </section>
-
-    <section class="panel panel-span-2 panel-subpanel" data-panel="leftBottom">
-      <div class="panel-toolbar"><span class="panel-name">Left 3</span><button class="panel-edit btn-mini" data-edit="leftBottom">Edit</button></div>
-      <div class="panel-body" id="panel-leftBottom"></div>
-    </section>
-
-    <!-- Center Top -->
+    <!-- CENTER TOP -->
     <section class="panel" data-panel="centerTop">
-      <div class="panel-toolbar"><span class="panel-name">Center Top</span><button class="panel-edit btn-mini" data-edit="centerTop">Edit</button></div>
+      <div class="panel-toolbar">
+        <span class="panel-name">Center Top</span>
+        <button class="panel-edit btn-mini" data-edit="centerTop">Edit</button>
+      </div>
       <div class="panel-body" id="panel-centerTop"></div>
     </section>
 
-    <!-- Right Top -->
+    <!-- RIGHT TOP -->
     <section class="panel" data-panel="rightTop">
-      <div class="panel-toolbar"><span class="panel-name">Right Top</span><button class="panel-edit btn-mini" data-edit="rightTop">Edit</button></div>
+      <div class="panel-toolbar">
+        <span class="panel-name">Right Top</span>
+        <button class="panel-edit btn-mini" data-edit="rightTop">Edit</button>
+      </div>
       <div class="panel-body" id="panel-rightTop"></div>
     </section>
 
-    <!-- Center Bottom -->
+    <!-- CENTER BOTTOM -->
     <section class="panel" data-panel="centerBottom">
-      <div class="panel-toolbar"><span class="panel-name">Center Bottom</span><button class="panel-edit btn-mini" data-edit="centerBottom">Edit</button></div>
+      <div class="panel-toolbar">
+        <span class="panel-name">Center Bottom</span>
+        <button class="panel-edit btn-mini" data-edit="centerBottom">Edit</button>
+      </div>
       <div class="panel-body" id="panel-centerBottom"></div>
     </section>
 
-    <!-- Right Bottom -->
+    <!-- RIGHT BOTTOM -->
     <section class="panel" data-panel="rightBottom">
-      <div class="panel-toolbar"><span class="panel-name">Right Bottom</span><button class="panel-edit btn-mini" data-edit="rightBottom">Edit</button></div>
+      <div class="panel-toolbar">
+        <span class="panel-name">Right Bottom</span>
+        <button class="panel-edit btn-mini" data-edit="rightBottom">Edit</button>
+      </div>
       <div class="panel-body" id="panel-rightBottom"></div>
     </section>
+
   </main>
 
-  <!-- Edit Drawer -->
+  <!-- EDIT DRAWER -->
   <aside class="drawer" id="drawer" aria-hidden="true">
     <div class="drawer-header">
       <div>
         <div class="drawer-title">Customize Dashboard</div>
-        <div class="drawer-sub">Saved locally in this browser. Use Export/Import to move between machines.</div>
+        <div class="drawer-sub">
+          Saved locally in this browser. Use Export/Import to move between machines.
+        </div>
       </div>
       <button class="btn btn-warn" id="closeDrawerBtn">Close</button>
     </div>
 
     <div class="drawer-section">
       <h3>Header</h3>
+
       <label class="field">
         <span>Dashboard Name</span>
-        <input type="text" id="nameInput" placeholder="e.g., FSU Weather & Ops Board">
+        <input type="text" id="nameInput">
       </label>
 
       <label class="field">
         <span>Refresh Interval (seconds)</span>
         <input type="number" id="refreshInput" min="30" step="10">
-        <div class="hint">Recommended: 300–900 seconds (5–15 min). Refresh pauses while editing.</div>
+        <div class="hint">Recommended: 300–900 seconds (5–15 minutes)</div>
       </label>
     </div>
 
@@ -100,34 +131,31 @@
       <div class="row3">
         <label class="field">
           <span>Left (%)</span>
-          <input type="number" id="col1" min="10" max="80" step="1">
+          <input type="number" id="col1">
         </label>
         <label class="field">
           <span>Center (%)</span>
-          <input type="number" id="col2" min="10" max="80" step="1">
+          <input type="number" id="col2">
         </label>
         <label class="field">
           <span>Right (%)</span>
-          <input type="number" id="col3" min="10" max="80" step="1">
+          <input type="number" id="col3">
         </label>
       </div>
 
-      <div class="hint">Tip: These should add up to ~100. We’ll auto-normalize if you go over/under.</div>
-
       <div class="preset-row">
-        <button class="btn" data-preset="cameras">Preset: Cameras Focus</button>
-        <button class="btn" data-preset="balanced">Preset: Balanced</button>
-        <button class="btn" data-preset="weather">Preset: Weather Focus</button>
+        <button class="btn" data-preset="cameras">Cameras Focus</button>
+        <button class="btn" data-preset="balanced">Balanced</button>
+        <button class="btn" data-preset="weather">Weather Focus</button>
       </div>
     </div>
 
     <div class="drawer-section">
       <h3>Panels</h3>
       <div class="hint">
-        Paste a full iframe snippet OR a URL. If URL, we wrap it in an iframe.
-        <br>Note: Some sites block embedding (NWS briefing pages sometimes do). Twitch requires <code>parent=</code> set to your GitHub Pages domain.
+        Paste a full iframe snippet OR a URL.  
+        If a URL is provided, it will be wrapped automatically.
       </div>
-
       <div class="panel-list" id="panelList"></div>
     </div>
 
@@ -137,7 +165,7 @@
     </div>
   </aside>
 
-  <!-- Modal (Import) -->
+  <!-- IMPORT / EXPORT MODAL -->
   <div class="modal" id="modal" aria-hidden="true">
     <div class="modal-card">
       <div class="modal-header">
@@ -157,4 +185,3 @@
   <script src="app.js"></script>
 </body>
 </html>
-
