@@ -11,7 +11,7 @@
       --panel: #020617;
       --border: #1e293b;
       --text: #ffffff;
-      --muted: rgba(255,255,255,0.75);
+      --muted: rgba(255,255,255,0.7);
       --gap: 8px;
 
       --col-1: 35%;
@@ -34,7 +34,7 @@
       flex-direction: column;
     }
 
-    /* HEADER */
+    /* ===== HEADER ===== */
     .header-bar {
       min-height: var(--header-height);
       display: grid;
@@ -58,8 +58,8 @@
       text-align: right;
       font-size: 12px;
       color: var(--muted);
-      line-height: 1.4;
       max-width: 90%;
+      line-height: 1.4;
     }
 
     .header-title {
@@ -75,7 +75,7 @@
 
     .separator { margin: 0 6px; }
 
-    /* DASHBOARD */
+    /* ===== DASHBOARD ===== */
     .dashboard {
       flex: 1;
       display: grid;
@@ -93,7 +93,7 @@
       gap: var(--gap);
     }
 
-    /* PANEL STRUCTURE */
+    /* ===== PANEL ===== */
     .panel {
       background: var(--panel);
       border: 1px solid var(--border);
@@ -101,6 +101,7 @@
       display: flex;
       flex-direction: column;
       overflow: hidden;
+      position: relative;
     }
 
     .panel-header {
@@ -109,7 +110,9 @@
       font-weight: bold;
       color: var(--muted);
       border-bottom: 1px solid var(--border);
-      background: rgba(255,255,255,0.02);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
     .panel-body {
@@ -123,12 +126,64 @@
       border: none;
     }
 
+    /* ===== EDIT BUTTON ===== */
+    .edit-btn {
+      display: none;
+      font-size: 11px;
+      color: var(--muted);
+      cursor: pointer;
+    }
+
+    .panel:hover .edit-btn {
+      display: inline;
+    }
+
+    /* ===== EDIT MODE UI ===== */
+    .edit-form {
+      padding: 10px;
+      font-size: 12px;
+    }
+
+    .edit-form label {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--muted);
+    }
+
+    .edit-form input {
+      width: 100%;
+      padding: 6px;
+      margin-bottom: 8px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      background: #020617;
+      color: #fff;
+    }
+
+    .edit-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    .edit-actions button {
+      flex: 1;
+      padding: 6px;
+      font-size: 12px;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+    }
+
+    .apply-btn { background: #2563eb; color: #fff; }
+    .cancel-btn { background: #374151; color: #fff; }
+
+    /* POSITIONING */
     .center-top    { grid-column: 2; grid-row: 1; }
     .right-top     { grid-column: 3; grid-row: 1; }
     .center-bottom { grid-column: 2; grid-row: 2; }
     .right-bottom  { grid-column: 3; grid-row: 2; }
 
-    /* FOOTER */
+    /* ===== FOOTER ===== */
     .footer-bar {
       height: var(--footer-height);
       background: rgba(2, 6, 23, 0.95);
@@ -151,11 +206,6 @@
       padding: 0 6px;
     }
 
-    .footer-links a:hover {
-      color: #ffffff;
-      text-decoration: underline;
-    }
-
     .footer-links span { opacity: 0.5; }
   </style>
 </head>
@@ -164,7 +214,6 @@
 
 <!-- HEADER -->
 <header class="header-bar">
-
   <div class="header-section header-left">
     <div class="header-title">Weather & Operations Dashboard</div>
     <div class="header-meta">
@@ -175,91 +224,50 @@
       Refresh in <span id="refreshCountdown">--</span>s
     </div>
   </div>
-
   <div class="header-section header-center"></div>
-
   <div class="header-section header-right" id="wvdeHeader"></div>
-
 </header>
 
 <!-- DASHBOARD -->
 <div class="dashboard">
 
-  <!-- LEFT COLUMN -->
   <div class="column-left">
-    <div class="panel" data-panel-id="left-1">
-      <div class="panel-header"></div>
-      <div class="panel-body"></div>
-    </div>
-
-    <div class="panel" data-panel-id="left-2">
-      <div class="panel-header"></div>
-      <div class="panel-body"></div>
-    </div>
-
-    <div class="panel" data-panel-id="left-3">
-      <div class="panel-header"></div>
-      <div class="panel-body"></div>
-    </div>
+    <div class="panel" data-panel-id="left-1"></div>
+    <div class="panel" data-panel-id="left-2"></div>
+    <div class="panel" data-panel-id="left-3"></div>
   </div>
 
-  <!-- CENTER / RIGHT -->
-  <div class="panel center-top" data-panel-id="center-top">
-    <div class="panel-header"></div>
-    <div class="panel-body"></div>
-  </div>
-
-  <div class="panel right-top" data-panel-id="right-top">
-    <div class="panel-header"></div>
-    <div class="panel-body"></div>
-  </div>
-
-  <div class="panel center-bottom" data-panel-id="center-bottom">
-    <div class="panel-header"></div>
-    <div class="panel-body"></div>
-  </div>
-
-  <div class="panel right-bottom" data-panel-id="right-bottom">
-    <div class="panel-header"></div>
-    <div class="panel-body"></div>
-  </div>
+  <div class="panel center-top" data-panel-id="center-top"></div>
+  <div class="panel right-top" data-panel-id="right-top"></div>
+  <div class="panel center-bottom" data-panel-id="center-bottom"></div>
+  <div class="panel right-bottom" data-panel-id="right-bottom"></div>
 
 </div>
 
 <!-- FOOTER -->
 <footer class="footer-bar">
   <nav class="footer-links">
-    <a href="https://www.fairmontstate.edu" target="_blank">FSU</a>
-    <span>|</span>
-    <a href="#">Emergency Info</a>
-    <span>|</span>
-    <a href="#">Campus Police</a>
-    <span>|</span>
-    <a href="https://www.weather.gov/rlx" target="_blank">NWS RLX</a>
-    <span>|</span>
-    <a href="https://www.weather.gov/alerts" target="_blank">NWS Alerts</a>
-    <span>|</span>
+    <a href="https://www.fairmontstate.edu" target="_blank">FSU</a><span>|</span>
+    <a href="#">Emergency Info</a><span>|</span>
+    <a href="#">Campus Police</a><span>|</span>
+    <a href="https://www.weather.gov/rlx" target="_blank">NWS RLX</a><span>|</span>
     <a href="https://www.wv511.org" target="_blank">WV 511</a>
-    <span>|</span>
-    <a href="#">Weather Policy</a>
-    <span>|</span>
-    <a href="https://dhsem.wv.gov" target="_blank">WV Emergency Mgmt</a>
   </nav>
 </footer>
 
-<!-- TIME + REFRESH -->
+<!-- TIME -->
 <script>
   const REFRESH_INTERVAL = 600;
   let remaining = REFRESH_INTERVAL;
 
   function updateTime() {
     const now = new Date();
-    document.getElementById("time12").textContent = now.toLocaleTimeString("en-US");
-    document.getElementById("time24").textContent = now.toLocaleTimeString("en-GB");
+    time12.textContent = now.toLocaleTimeString("en-US");
+    time24.textContent = now.toLocaleTimeString("en-GB");
   }
 
   function updateCountdown() {
-    document.getElementById("refreshCountdown").textContent = remaining;
+    refreshCountdown.textContent = remaining;
     remaining--;
     if (remaining < 0) location.reload();
   }
@@ -270,50 +278,58 @@
   setInterval(updateCountdown, 1000);
 </script>
 
-<!-- PANEL CONFIG + LOADER -->
+<!-- PANEL CONFIG + EDIT MODE -->
 <script>
   const panelConfig = {
-    "left-1": {
-      title: "Traffic Camera",
-      type: "iframe",
-      src: "https://webcam.io/webcams/MpbQgP?embed=true"
-    },
-    "center-top": {
-      title: "Radar (Ventusky)",
-      type: "iframe",
-      src: "https://embed.ventusky.com/?p=38.98;-81.21;7&l=radar"
-    },
-    "right-top": {
-      title: "NWS Forecast Office",
-      type: "iframe",
-      src: "https://www.weather.gov/rlx/"
-    }
+    "left-1": { title: "Traffic Camera", src: "https://webcam.io/webcams/MpbQgP?embed=true" },
+    "center-top": { title: "Radar", src: "https://embed.ventusky.com/?p=38.98;-81.21;7&l=radar" }
   };
 
-  function loadPanels(config) {
-    Object.entries(config).forEach(([id, panel]) => {
-      const panelEl = document.querySelector(`[data-panel-id="${id}"]`);
-      if (!panelEl) return;
+  function renderPanels() {
+    document.querySelectorAll(".panel").forEach(panel => {
+      const id = panel.dataset.panelId;
+      const cfg = panelConfig[id] || {};
 
-      panelEl.querySelector(".panel-header").textContent = panel.title || "";
-
-      const body = panelEl.querySelector(".panel-body");
-      body.innerHTML = "";
-
-      if (panel.type === "iframe" && panel.src) {
-        const iframe = document.createElement("iframe");
-        iframe.src = panel.src;
-        iframe.loading = "lazy";
-        body.appendChild(iframe);
-      }
-
-      if (panel.type === "html" && panel.content) {
-        body.innerHTML = panel.content;
-      }
+      panel.innerHTML = `
+        <div class="panel-header">
+          <span>${cfg.title || ""}</span>
+          <span class="edit-btn" onclick="editPanel('${id}')">Edit</span>
+        </div>
+        <div class="panel-body">
+          ${cfg.src ? `<iframe src="${cfg.src}" loading="lazy"></iframe>` : ""}
+        </div>
+      `;
     });
   }
 
-  loadPanels(panelConfig);
+  function editPanel(id) {
+    const panel = document.querySelector(`[data-panel-id="${id}"]`);
+    const cfg = panelConfig[id] || {};
+
+    panel.innerHTML = `
+      <div class="panel-header">Editing: ${id}</div>
+      <div class="edit-form">
+        <label>Panel Title</label>
+        <input id="title-${id}" value="${cfg.title || ""}">
+        <label>iframe URL</label>
+        <input id="src-${id}" value="${cfg.src || ""}">
+        <div class="edit-actions">
+          <button class="apply-btn" onclick="applyEdit('${id}')">Apply</button>
+          <button class="cancel-btn" onclick="renderPanels()">Cancel</button>
+        </div>
+      </div>
+    `;
+  }
+
+  function applyEdit(id) {
+    panelConfig[id] = {
+      title: document.getElementById(`title-${id}`).value,
+      src: document.getElementById(`src-${id}`).value
+    };
+    renderPanels();
+  }
+
+  renderPanels();
 </script>
 
 </body>
