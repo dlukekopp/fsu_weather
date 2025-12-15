@@ -13,7 +13,6 @@
       --border: #1e293b;
       --text: #ffffff;
 
-      /* column widths */
       --col-1: 35%;
       --col-2: 40%;
       --col-3: 25%;
@@ -31,7 +30,6 @@
       height: 100vh;
     }
 
-    /* Main grid */
     .dashboard {
       height: 100vh;
       display: grid;
@@ -41,15 +39,15 @@
       padding: var(--gap);
     }
 
-    /* Left column container */
+    /* LEFT COLUMN MUST SPAN BOTH ROWS */
     .column-left {
+      grid-column: 1;
+      grid-row: 1 / span 2;
       display: grid;
       grid-template-rows: repeat(3, 1fr);
       gap: var(--gap);
-      height: 100%;
     }
 
-    /* Panels */
     .panel {
       background: var(--panel);
       border: 1px solid var(--border);
@@ -61,15 +59,19 @@
       font-weight: bold;
     }
 
-    /* Responsive fallback */
+    /* Explicit placement for clarity (recommended) */
+    .center-top    { grid-column: 2; grid-row: 1; }
+    .right-top     { grid-column: 3; grid-row: 1; }
+    .center-bottom { grid-column: 2; grid-row: 2; }
+    .right-bottom  { grid-column: 3; grid-row: 2; }
+
     @media (max-width: 1000px) {
       .dashboard {
         grid-template-columns: 1fr;
         grid-template-rows: auto;
       }
-
       .column-left {
-        height: auto;
+        grid-row: auto;
       }
     }
   </style>
@@ -86,17 +88,11 @@
       <div class="panel">LEFT 3</div>
     </div>
 
-    <!-- CENTER TOP -->
-    <div class="panel">CENTER TOP</div>
-
-    <!-- RIGHT TOP -->
-    <div class="panel">RIGHT TOP</div>
-
-    <!-- CENTER BOTTOM -->
-    <div class="panel">CENTER BOTTOM</div>
-
-    <!-- RIGHT BOTTOM -->
-    <div class="panel">RIGHT BOTTOM</div>
+    <!-- CENTER / RIGHT -->
+    <div class="panel center-top">CENTER TOP</div>
+    <div class="panel right-top">RIGHT TOP</div>
+    <div class="panel center-bottom">CENTER BOTTOM</div>
+    <div class="panel right-bottom">RIGHT BOTTOM</div>
 
   </div>
 
