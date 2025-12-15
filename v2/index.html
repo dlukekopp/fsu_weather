@@ -2,17 +2,17 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Dashboard Layout Test</title>
+  <title>Weather & Operations Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <style>
     :root {
-      --gap: 8px;
       --bg: #0b1220;
       --panel: #020617;
       --border: #1e293b;
       --text: #ffffff;
       --muted: rgba(255,255,255,0.75);
+      --gap: 8px;
 
       --col-1: 35%;
       --col-2: 40%;
@@ -39,12 +39,30 @@
     ====================== */
     .header-bar {
       height: var(--header-height);
-      display: flex;
-      justify-content: space-between;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
       align-items: center;
       padding: 10px 16px;
       background: rgba(2, 6, 23, 0.95);
       border-bottom: 1px solid var(--border);
+    }
+
+    .header-section {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .header-center {
+      align-items: center;
+    }
+
+    .header-right {
+      align-items: flex-end;
+      font-size: 12px;
+      color: var(--muted);
+      text-align: right;
+      line-height: 1.3;
     }
 
     .header-title {
@@ -91,7 +109,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 16px;
+      font-size: 15px;
       font-weight: bold;
     }
 
@@ -101,7 +119,9 @@
     .center-bottom { grid-column: 2; grid-row: 2; }
     .right-bottom  { grid-column: 3; grid-row: 2; }
 
-    /* Responsive fallback */
+    /* =====================
+       RESPONSIVE FALLBACK
+    ====================== */
     @media (max-width: 1000px) {
       body {
         overflow: auto;
@@ -124,7 +144,9 @@
 
   <!-- HEADER -->
   <header class="header-bar">
-    <div>
+
+    <!-- LEFT THIRD -->
+    <div class="header-section header-left">
       <div class="header-title">Weather & Operations Dashboard</div>
       <div class="header-meta">
         <span id="currentTime">--:--:--</span>
@@ -132,19 +154,28 @@
         Refresh in <span id="refreshCountdown">--</span>s
       </div>
     </div>
+
+    <!-- CENTER THIRD (RESERVED) -->
+    <div class="header-section header-center">
+      <!-- intentionally blank -->
+    </div>
+
+    <!-- RIGHT THIRD (WVDE CLOSINGS) -->
+    <div class="header-section header-right" id="wvdeHeader">
+      <!-- populated only if matches exist -->
+    </div>
+
   </header>
 
-  <!-- DASHBOARD -->
+  <!-- DASHBOARD GRID -->
   <div class="dashboard">
 
-    <!-- LEFT COLUMN -->
     <div class="column-left">
       <div class="panel">LEFT 1</div>
       <div class="panel">LEFT 2</div>
       <div class="panel">LEFT 3</div>
     </div>
 
-    <!-- CENTER / RIGHT -->
     <div class="panel center-top">CENTER TOP</div>
     <div class="panel right-top">RIGHT TOP</div>
     <div class="panel center-bottom">CENTER BOTTOM</div>
@@ -152,29 +183,57 @@
 
   </div>
 
-  <!-- SIMPLE CLOCK + REFRESH -->
+  <!-- TIME + REFRESH -->
   <script>
     const REFRESH_INTERVAL = 600; // seconds
     let remaining = REFRESH_INTERVAL;
 
     function updateTime() {
-      const now = new Date();
       document.getElementById("currentTime").textContent =
-        now.toLocaleTimeString();
+        new Date().toLocaleTimeString();
     }
 
     function updateCountdown() {
       document.getElementById("refreshCountdown").textContent = remaining;
       remaining--;
-      if (remaining < 0) {
-        location.reload();
-      }
+      if (remaining < 0) location.reload();
     }
 
     updateTime();
     updateCountdown();
     setInterval(updateTime, 1000);
     setInterval(updateCountdown, 1000);
+  </script>
+
+  <!-- WVDE RSS (FILTERED BY TITLE) -->
+  <script>
+    const WVDE_FEED =
+      "https://api.rss2json.com/v1/api.json?rss_url=https://wveis.k12.wv.us/closings/rss.php";
+
+    const COUNTIES = ["Marion", "Harrison", "Monongalia"];
+    const headerEl = document.getElementById("wvdeHeader");
+
+    fetch(WVDE_FEED)
+      .then(res => res.json())
+      .then(data => {
+        if (!data.items) return;
+
+        const matches = data.items.filter(item =>
+          COUNTIES.some(county =>
+            item.title.toLowerCase().includes(county.toLowerCase())
+          )
+        );
+
+        if (matches.length === 0) return;
+
+        headerEl.innerHTML = `
+          <strong>School Closings:</strong>
+          ${matches.map(m => `<div>${m.description}</div>`).join("")}
+        `;
+      })
+      .catch(() => {
+        /* fail silently */
+      });
   </script>
 
 </body>
