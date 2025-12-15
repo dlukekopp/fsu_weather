@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Dashboard Grid Test</title>
+  <title>Dashboard Layout Test</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <style>
@@ -12,10 +12,13 @@
       --panel: #020617;
       --border: #1e293b;
       --text: #ffffff;
+      --muted: rgba(255,255,255,0.75);
 
       --col-1: 35%;
       --col-2: 40%;
       --col-3: 25%;
+
+      --header-height: 64px;
     }
 
     * {
@@ -24,14 +27,46 @@
 
     body {
       margin: 0;
+      height: 100vh;
       background: var(--bg);
       color: var(--text);
       font-family: Arial, sans-serif;
-      height: 100vh;
+      overflow: hidden;
     }
 
+    /* =====================
+       HEADER
+    ====================== */
+    .header-bar {
+      height: var(--header-height);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 16px;
+      background: rgba(2, 6, 23, 0.95);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .header-title {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .header-meta {
+      margin-top: 4px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .separator {
+      margin: 0 8px;
+    }
+
+    /* =====================
+       DASHBOARD GRID
+    ====================== */
     .dashboard {
-      height: 100vh;
+      height: calc(100vh - var(--header-height));
       display: grid;
       grid-template-columns: var(--col-1) var(--col-2) var(--col-3);
       grid-template-rows: 50% 50%;
@@ -39,7 +74,7 @@
       padding: var(--gap);
     }
 
-    /* LEFT COLUMN MUST SPAN BOTH ROWS */
+    /* LEFT COLUMN */
     .column-left {
       grid-column: 1;
       grid-row: 1 / span 2;
@@ -48,6 +83,7 @@
       gap: var(--gap);
     }
 
+    /* PANELS */
     .panel {
       background: var(--panel);
       border: 1px solid var(--border);
@@ -59,17 +95,24 @@
       font-weight: bold;
     }
 
-    /* Explicit placement for clarity (recommended) */
+    /* Explicit placement */
     .center-top    { grid-column: 2; grid-row: 1; }
     .right-top     { grid-column: 3; grid-row: 1; }
     .center-bottom { grid-column: 2; grid-row: 2; }
     .right-bottom  { grid-column: 3; grid-row: 2; }
 
+    /* Responsive fallback */
     @media (max-width: 1000px) {
+      body {
+        overflow: auto;
+      }
+
       .dashboard {
         grid-template-columns: 1fr;
         grid-template-rows: auto;
+        height: auto;
       }
+
       .column-left {
         grid-row: auto;
       }
@@ -79,6 +122,19 @@
 
 <body>
 
+  <!-- HEADER -->
+  <header class="header-bar">
+    <div>
+      <div class="header-title">Weather & Operations Dashboard</div>
+      <div class="header-meta">
+        <span id="currentTime">--:--:--</span>
+        <span class="separator">•</span>
+        Refresh in <span id="refreshCountdown">--</span>s
+      </div>
+    </div>
+  </header>
+
+  <!-- DASHBOARD -->
   <div class="dashboard">
 
     <!-- LEFT COLUMN -->
@@ -95,6 +151,31 @@
     <div class="panel right-bottom">RIGHT BOTTOM</div>
 
   </div>
+
+  <!-- SIMPLE CLOCK + REFRESH -->
+  <script>
+    const REFRESH_INTERVAL = 600; // seconds
+    let remaining = REFRESH_INTERVAL;
+
+    function updateTime() {
+      const now = new Date();
+      document.getElementById("currentTime").textContent =
+        now.toLocaleTimeString();
+    }
+
+    function updateCountdown() {
+      document.getElementById("refreshCountdown").textContent = remaining;
+      remaining--;
+      if (remaining < 0) {
+        location.reload();
+      }
+    }
+
+    updateTime();
+    updateCountdown();
+    setInterval(updateTime, 1000);
+    setInterval(updateCountdown, 1000);
+  </script>
 
 </body>
 </html>
