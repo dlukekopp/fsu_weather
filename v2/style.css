@@ -1,383 +1,365 @@
-:root{
+/* =========================
+   Root Variables
+========================= */
+:root {
   --bg: #0b1220;
-  --panel: #020617;
+  --panel-bg: #020617;
   --border: #1e293b;
   --text: #ffffff;
-  --muted: rgba(255,255,255,.72);
+  --muted: rgba(255, 255, 255, 0.7);
 
   --gap: 6px;
 
-  /* column widths (customizable) */
+  /* Column widths (controlled via JS) */
   --col-1: 35%;
   --col-2: 40%;
   --col-3: 25%;
 
-  /* header height */
-  --header-h: 64px;
+  --header-height: 64px;
 }
 
-*{ box-sizing: border-box; }
+/* =========================
+   Global Reset
+========================= */
+* {
+  box-sizing: border-box;
+}
 
-body{
-  margin:0;
+body {
+  margin: 0;
   background: var(--bg);
   color: var(--text);
   font-family: Arial, sans-serif;
   overflow: hidden;
 }
 
-.header-bar{
-  height: var(--header-h);
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding: 10px 12px;
+/* =========================
+   Header Bar
+========================= */
+.header-bar {
+  height: var(--header-height);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: rgba(2, 6, 23, 0.95);
   border-bottom: 1px solid var(--border);
-  background: rgba(2,6,23,.9);
 }
 
-.app-title{
+.app-title {
   font-size: 18px;
   font-weight: 700;
-  line-height: 1.2;
 }
 
-.header-sub{
+.header-sub {
   font-size: 12px;
   color: var(--muted);
   margin-top: 4px;
 }
 
-.dot{ margin: 0 8px; opacity: .6; }
-
-.header-right{
-  display:flex;
-  gap: 8px;
-  align-items:center;
+.dot {
+  margin: 0 8px;
 }
 
-.btn{
+/* =========================
+   Buttons
+========================= */
+.btn,
+.btn-mini {
   background: transparent;
   border: 1px solid var(--border);
   color: var(--text);
-  padding: 8px 10px;
-  border-radius: 8px;
   cursor: pointer;
+  border-radius: 8px;
+}
+
+.btn {
+  padding: 8px 10px;
   font-size: 13px;
 }
 
-.btn:hover{ background: rgba(255,255,255,.06); }
-
-.btn-warn{
-  border-color: rgba(255,255,255,.22);
-}
-
-.btn-mini{
-  background: transparent;
-  border: 1px solid rgba(255,255,255,.18);
-  color: rgba(255,255,255,.85);
+.btn-mini {
   padding: 5px 8px;
-  border-radius: 8px;
-  cursor: pointer;
   font-size: 12px;
 }
-.btn-mini:hover{ background: rgba(255,255,255,.06); }
 
-.dashboard{
-  height: calc(100vh - var(--header-h));
-  padding: var(--gap);
+.btn:hover,
+.btn-mini:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.btn-warn {
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+/* =========================
+   Dashboard Grid
+========================= */
+.dashboard {
+  height: calc(100vh - var(--header-height));
   display: grid;
   grid-template-columns: var(--col-1) var(--col-2) var(--col-3);
   grid-template-rows: 50% 50%;
   gap: var(--gap);
+  padding: var(--gap);
 }
 
-.panel{
-  background: var(--panel);
+/* =========================
+   Left Column (3 Panels)
+========================= */
+.column-left {
+  display: grid;
+  grid-template-rows: repeat(3, 1fr);
+  gap: var(--gap);
+  height: 100%;
+}
+
+/* =========================
+   Panels
+========================= */
+.panel {
+  position: relative;
+  background: var(--panel-bg);
   border: 1px solid var(--border);
   border-radius: 10px;
   overflow: hidden;
-  position: relative;
   min-height: 0;
 }
 
-.panel-toolbar{
-  position: absolute;
-  top: 8px;
-  left: 8px;
-  right: 8px;
-  display:flex;
-  justify-content: space-between;
-  align-items:center;
-  gap: 8px;
-  pointer-events: none;
-  z-index: 2;
-}
-
-.panel-name{
-  font-size: 12px;
-  color: rgba(255,255,255,.78);
-  background: rgba(2,6,23,.72);
-  border: 1px solid rgba(255,255,255,.10);
-  padding: 6px 8px;
-  border-radius: 10px;
-  pointer-events: none;
-}
-
-.panel-edit{
-  pointer-events: auto;
-  display: none; /* only show in edit mode */
-}
-
-body.edit-mode .panel-edit{
-  display: inline-block;
-}
-
-.panel-body{
+.panel-body {
   width: 100%;
   height: 100%;
 }
 
 .panel-body iframe,
 .panel-body video,
-.panel-body embed{
+.panel-body embed {
   width: 100%;
   height: 100%;
-  border: 0;
-}
-
-.panel-span-2{
-  grid-row: span 2;
-  display: grid;
-  grid-template-rows: repeat(3, 1fr);
-  gap: var(--gap);
-  padding: var(--gap);
-}
-
-.panel-span-2 > .panel-toolbar{
-  display:none; /* for wrapper panel */
-}
-
-.panel-span-2 > .panel-body{
-  display:none; /* for wrapper panel */
-}
-
-.panel-span-2.panel{
-  background: transparent;
   border: none;
-  padding: 0;
-  overflow: visible;
 }
 
-.panel-span-2 .panel-subpanel{
-  height: 100%;
+/* =========================
+   Panel Toolbar
+========================= */
+.panel-toolbar {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  right: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 2;
+  pointer-events: none;
 }
 
-.panel-subpanel{
-  position: relative;
-  min-height: 0;
+.panel-name {
+  font-size: 12px;
+  padding: 6px 8px;
+  background: rgba(2, 6, 23, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
 }
 
-/* Drawer */
-.drawer{
+.panel-edit {
+  pointer-events: auto;
+  display: none;
+}
+
+/* Show edit buttons only in edit mode */
+body.edit-mode .panel-edit {
+  display: inline-block;
+}
+
+/* =========================
+   Drawer (Edit Panel)
+========================= */
+.drawer {
   position: fixed;
   top: 0;
   right: -460px;
   width: 460px;
   height: 100vh;
-  background: rgba(2,6,23,.98);
+  background: rgba(2, 6, 23, 0.98);
   border-left: 1px solid var(--border);
-  transition: right .18s ease;
   padding: 14px;
-  display:flex;
+  display: flex;
   flex-direction: column;
   gap: 12px;
+  transition: right 0.2s ease;
   z-index: 50;
 }
 
-.drawer.open{ right: 0; }
+.drawer.open {
+  right: 0;
+}
 
-.drawer-header{
-  display:flex;
-  align-items:flex-start;
+.drawer-header {
+  display: flex;
   justify-content: space-between;
   gap: 12px;
 }
 
-.drawer-title{
-  font-weight: 700;
+.drawer-title {
   font-size: 16px;
+  font-weight: 700;
 }
 
-.drawer-sub{
-  margin-top: 4px;
+.drawer-sub {
   font-size: 12px;
   color: var(--muted);
+  margin-top: 4px;
 }
 
-.drawer-section{
-  border: 1px solid rgba(255,255,255,.08);
+.drawer-section {
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   padding: 12px;
-  overflow: hidden;
 }
 
-.drawer-section h3{
+.drawer-section h3 {
   margin: 0 0 10px 0;
   font-size: 14px;
 }
 
-.field{
-  display:flex;
+/* =========================
+   Form Elements
+========================= */
+.field {
+  display: flex;
   flex-direction: column;
   gap: 6px;
   margin-bottom: 10px;
 }
 
-.field span{
+.field span {
   font-size: 12px;
   color: var(--muted);
 }
 
-input[type="text"],
-input[type="number"],
-textarea{
-  background: rgba(255,255,255,.04);
-  border: 1px solid rgba(255,255,255,.12);
+input,
+textarea {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   color: var(--text);
   padding: 10px;
   border-radius: 10px;
   outline: none;
 }
 
-textarea{
-  min-height: 180px;
+textarea {
+  min-height: 160px;
   resize: vertical;
-  width: 100%;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-family: monospace;
   font-size: 12px;
 }
 
-.hint{
+.hint {
   font-size: 12px;
-  color: rgba(255,255,255,.70);
-  line-height: 1.35;
+  color: var(--muted);
 }
 
-.row3{
+.row3 {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 8px;
 }
 
-.preset-row{
-  display:flex;
+.preset-row {
+  display: flex;
   gap: 8px;
   flex-wrap: wrap;
-  margin-top: 8px;
 }
 
-.panel-list{
-  display:flex;
+/* =========================
+   Panel List (Editor)
+========================= */
+.panel-list {
+  display: flex;
   flex-direction: column;
   gap: 10px;
   max-height: 38vh;
-  overflow: auto;
-  padding-right: 6px;
+  overflow-y: auto;
 }
 
-.panel-item{
-  border: 1px solid rgba(255,255,255,.08);
+.panel-item {
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   padding: 10px;
 }
 
-.panel-item-head{
-  display:flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
-.panel-item-title{
+.panel-item-title {
   font-weight: 700;
   font-size: 13px;
 }
 
-.panel-item-id{
+.panel-item-id {
   font-size: 11px;
-  color: rgba(255,255,255,.55);
+  color: rgba(255, 255, 255, 0.5);
 }
 
-.drawer-footer{
+/* =========================
+   Drawer Footer
+========================= */
+.drawer-footer {
   margin-top: auto;
-  display:flex;
-  gap: 10px;
+  display: flex;
   justify-content: flex-end;
+  gap: 10px;
 }
 
-/* Modal */
-.modal{
+/* =========================
+   Modal
+========================= */
+.modal {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,.55);
+  background: rgba(0, 0, 0, 0.55);
   display: none;
   align-items: center;
   justify-content: center;
   z-index: 70;
-  padding: 16px;
 }
 
-.modal.open{ display:flex; }
+.modal.open {
+  display: flex;
+}
 
-.modal-card{
+.modal-card {
   width: min(820px, 96vw);
-  background: rgba(2,6,23,.98);
+  background: rgba(2, 6, 23, 0.98);
   border: 1px solid var(--border);
   border-radius: 14px;
-  overflow: hidden;
 }
 
-.modal-header{
-  display:flex;
+.modal-header,
+.modal-footer {
+  padding: 12px;
+  display: flex;
   justify-content: space-between;
-  align-items:center;
-  padding: 12px;
-  border-bottom: 1px solid rgba(255,255,255,.08);
+  align-items: center;
 }
 
-.modal-title{
-  font-weight: 700;
-}
-
-.modal-body{
+.modal-body {
   padding: 12px;
 }
 
-.modal-footer{
-  padding: 12px;
-  display:flex;
-  justify-content: flex-end;
-  gap: 10px;
-  border-top: 1px solid rgba(255,255,255,.08);
-}
-
-/* Responsive fallback */
-@media (max-width: 1100px){
-  :root{ --header-h: 76px; }
-  .dashboard{
-    grid-template-columns: 1fr;
-    grid-template-rows: repeat(6, 50vh);
-    height: auto;
+/* =========================
+   Responsive Fallback
+========================= */
+@media (max-width: 1100px) {
+  body {
     overflow: auto;
   }
-  body{ overflow: auto; }
-  .panel-span-2{
-    grid-row: auto;
-    height: 150vh;
+
+  .dashboard {
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(7, 50vh);
+    height: auto;
+  }
+
+  .column-left {
+    height: auto;
   }
 }
-
-
-
