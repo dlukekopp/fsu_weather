@@ -7,329 +7,202 @@
 
   <style>
     :root {
-      --bg: #0b1220;
-      --panel: #020617;
-      --border: #1e293b;
-      --text: #ffffff;
-      --muted: rgba(255,255,255,0.7);
-      --gap: 8px;
-
-      --col-1: 35%;
-      --col-2: 40%;
-      --col-3: 25%;
-
-      --header-height: 64px;
-      --footer-height: 36px;
+      --bg:#0b1220; --panel:#020617; --border:#1e293b;
+      --text:#fff; --muted:rgba(255,255,255,.7); --gap:8px;
+      --col-1:35%; --col-2:40%; --col-3:25%;
+      --header-height:64px; --footer-height:36px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; min-height:100vh; background:var(--bg);
+      color:var(--text); font-family:Arial,sans-serif;
+      display:flex; flex-direction:column;
     }
 
-    * { box-sizing: border-box; }
+    /* HEADER */
+    .header-bar{
+      min-height:var(--header-height);
+      display:grid; grid-template-columns:1fr 1fr 1fr;
+      align-items:flex-start; padding:10px 16px 12px;
+      background:#020617f2; border-bottom:1px solid var(--border);
+    }
+    .header-title{font-size:18px;font-weight:700}
+    .header-meta{font-size:12px;color:var(--muted);margin-top:4px}
+    .separator{margin:0 6px}
 
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background: var(--bg);
-      color: var(--text);
-      font-family: Arial, sans-serif;
-      display: flex;
-      flex-direction: column;
+    /* DASHBOARD */
+    .dashboard{
+      flex:1; display:grid;
+      grid-template-columns:var(--col-1) var(--col-2) var(--col-3);
+      grid-template-rows:1fr 1fr; gap:var(--gap); padding:var(--gap);
+    }
+    .column-left{
+      grid-column:1; grid-row:1/span 2;
+      display:grid; grid-template-rows:repeat(3,1fr); gap:var(--gap);
     }
 
-    /* ===== HEADER ===== */
-    .header-bar {
-      min-height: var(--header-height);
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      align-items: flex-start;
-      padding: 10px 16px 12px;
-      background: rgba(2, 6, 23, 0.95);
-      border-bottom: 1px solid var(--border);
+    /* PANELS */
+    .panel{
+      background:var(--panel); border:1px solid var(--border);
+      border-radius:8px; display:flex; flex-direction:column;
+      overflow:hidden; position:relative;
     }
-
-    .header-section {
-      display: flex;
-      flex-direction: column;
+    .panel-header{
+      padding:6px 10px; font-size:12px; font-weight:bold;
+      color:var(--muted); border-bottom:1px solid var(--border);
+      display:flex; justify-content:space-between; align-items:center;
     }
+    .panel-body{flex:1}
+    .panel-body iframe{width:100%;height:100%;border:none}
 
-    .header-left { align-items: flex-start; }
-    .header-center { align-items: center; }
+    .edit-btn{display:none;cursor:pointer;font-size:11px}
+    .panel:hover .edit-btn{display:inline}
 
-    .header-right {
-      align-items: flex-end;
-      text-align: right;
-      font-size: 12px;
-      color: var(--muted);
-      max-width: 90%;
-      line-height: 1.4;
+    /* EDIT UI */
+    .edit-form{padding:10px;font-size:12px}
+    .edit-form label{display:block;margin:6px 0 2px;color:var(--muted)}
+    .edit-form input, .edit-form select{
+      width:100%;padding:6px;border-radius:4px;
+      border:1px solid var(--border);background:#020617;color:#fff;
     }
-
-    .header-title {
-      font-size: 18px;
-      font-weight: 700;
+    .edit-actions{display:flex;gap:6px;margin-top:8px}
+    .edit-actions button{
+      flex:1;padding:6px;border:none;border-radius:4px;
+      cursor:pointer;font-size:12px
     }
+    .apply{background:#2563eb;color:#fff}
+    .reset{background:#7c2d12;color:#fff}
+    .cancel{background:#374151;color:#fff}
 
-    .header-meta {
-      margin-top: 4px;
-      font-size: 12px;
-      color: var(--muted);
+    /* FOOTER */
+    .footer-bar{
+      height:var(--footer-height); display:flex; justify-content:center;
+      align-items:center; border-top:1px solid var(--border);
+      background:#020617f2; font-size:12px;color:var(--muted)
     }
-
-    .separator { margin: 0 6px; }
-
-    /* ===== DASHBOARD ===== */
-    .dashboard {
-      flex: 1;
-      display: grid;
-      grid-template-columns: var(--col-1) var(--col-2) var(--col-3);
-      grid-template-rows: 1fr 1fr;
-      gap: var(--gap);
-      padding: var(--gap);
-    }
-
-    .column-left {
-      grid-column: 1;
-      grid-row: 1 / span 2;
-      display: grid;
-      grid-template-rows: repeat(3, 1fr);
-      gap: var(--gap);
-    }
-
-    /* ===== PANEL ===== */
-    .panel {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      position: relative;
-    }
-
-    .panel-header {
-      padding: 6px 10px;
-      font-size: 12px;
-      font-weight: bold;
-      color: var(--muted);
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .panel-body {
-      flex: 1;
-      position: relative;
-    }
-
-    .panel-body iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
-    }
-
-    /* ===== EDIT BUTTON ===== */
-    .edit-btn {
-      display: none;
-      font-size: 11px;
-      color: var(--muted);
-      cursor: pointer;
-    }
-
-    .panel:hover .edit-btn {
-      display: inline;
-    }
-
-    /* ===== EDIT MODE UI ===== */
-    .edit-form {
-      padding: 10px;
-      font-size: 12px;
-    }
-
-    .edit-form label {
-      display: block;
-      margin-bottom: 4px;
-      color: var(--muted);
-    }
-
-    .edit-form input {
-      width: 100%;
-      padding: 6px;
-      margin-bottom: 8px;
-      border-radius: 4px;
-      border: 1px solid var(--border);
-      background: #020617;
-      color: #fff;
-    }
-
-    .edit-actions {
-      display: flex;
-      gap: 6px;
-    }
-
-    .edit-actions button {
-      flex: 1;
-      padding: 6px;
-      font-size: 12px;
-      border-radius: 4px;
-      border: none;
-      cursor: pointer;
-    }
-
-    .apply-btn { background: #2563eb; color: #fff; }
-    .cancel-btn { background: #374151; color: #fff; }
-
-    /* POSITIONING */
-    .center-top    { grid-column: 2; grid-row: 1; }
-    .right-top     { grid-column: 3; grid-row: 1; }
-    .center-bottom { grid-column: 2; grid-row: 2; }
-    .right-bottom  { grid-column: 3; grid-row: 2; }
-
-    /* ===== FOOTER ===== */
-    .footer-bar {
-      height: var(--footer-height);
-      background: rgba(2, 6, 23, 0.95);
-      border-top: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0 12px;
-    }
-
-    .footer-links {
-      font-size: 12px;
-      color: var(--muted);
-      white-space: nowrap;
-    }
-
-    .footer-links a {
-      color: var(--muted);
-      text-decoration: none;
-      padding: 0 6px;
-    }
-
-    .footer-links span { opacity: 0.5; }
+    .footer-bar a{color:var(--muted);text-decoration:none;padding:0 6px}
+    .footer-bar span{opacity:.5}
   </style>
 </head>
 
 <body>
 
-<!-- HEADER -->
 <header class="header-bar">
-  <div class="header-section header-left">
+  <div>
     <div class="header-title">Weather & Operations Dashboard</div>
     <div class="header-meta">
-      <span id="time12">--:--:--</span>
-      <span class="separator">|</span>
-      <span id="time24">--:--:--</span>
-      <span class="separator">•</span>
-      Refresh in <span id="refreshCountdown">--</span>s
+      <span id="time12"></span><span class="separator">|</span>
+      <span id="time24"></span><span class="separator">•</span>
+      Refresh in <span id="countdown"></span>s
     </div>
   </div>
-  <div class="header-section header-center"></div>
-  <div class="header-section header-right" id="wvdeHeader"></div>
 </header>
 
-<!-- DASHBOARD -->
 <div class="dashboard">
-
   <div class="column-left">
-    <div class="panel" data-panel-id="left-1"></div>
-    <div class="panel" data-panel-id="left-2"></div>
-    <div class="panel" data-panel-id="left-3"></div>
+    <div class="panel" data-id="left-1"></div>
+    <div class="panel" data-id="left-2"></div>
+    <div class="panel" data-id="left-3"></div>
   </div>
-
-  <div class="panel center-top" data-panel-id="center-top"></div>
-  <div class="panel right-top" data-panel-id="right-top"></div>
-  <div class="panel center-bottom" data-panel-id="center-bottom"></div>
-  <div class="panel right-bottom" data-panel-id="right-bottom"></div>
-
+  <div class="panel" data-id="center-top"></div>
+  <div class="panel" data-id="right-top"></div>
+  <div class="panel" data-id="center-bottom"></div>
+  <div class="panel" data-id="right-bottom"></div>
 </div>
 
-<!-- FOOTER -->
 <footer class="footer-bar">
-  <nav class="footer-links">
-    <a href="https://www.fairmontstate.edu" target="_blank">FSU</a><span>|</span>
-    <a href="#">Emergency Info</a><span>|</span>
-    <a href="#">Campus Police</a><span>|</span>
-    <a href="https://www.weather.gov/rlx" target="_blank">NWS RLX</a><span>|</span>
-    <a href="https://www.wv511.org" target="_blank">WV 511</a>
-  </nav>
+  <a href="https://www.fairmontstate.edu" target="_blank">FSU</a><span>|</span>
+  <a href="https://www.wv511.org" target="_blank">WV 511</a><span>|</span>
+  <a href="https://www.weather.gov/rlx" target="_blank">NWS RLX</a>
 </footer>
 
-<!-- TIME -->
 <script>
-  const REFRESH_INTERVAL = 600;
-  let remaining = REFRESH_INTERVAL;
+/* ===== CLOCK ===== */
+const REFRESH=600; let r=REFRESH;
+setInterval(()=>{ 
+  const n=new Date();
+  time12.textContent=n.toLocaleTimeString("en-US");
+  time24.textContent=n.toLocaleTimeString("en-GB");
+  countdown.textContent=r--; if(r<0)location.reload();
+},1000);
 
-  function updateTime() {
-    const now = new Date();
-    time12.textContent = now.toLocaleTimeString("en-US");
-    time24.textContent = now.toLocaleTimeString("en-GB");
-  }
+/* ===== CONTENT LIBRARY ===== */
+const library={
+  "":{title:"",src:""},
+  "traffic":{title:"Traffic Camera",src:"https://webcam.io/webcams/MpbQgP?embed=true"},
+  "radar":{title:"Radar (Ventusky)",src:"https://embed.ventusky.com/?p=38.98;-81.21;7&l=radar"},
+  "nws":{title:"NWS RLX",src:"https://www.weather.gov/rlx"},
+  "wv511":{title:"WV 511",src:"https://www.wv511.org"},
+  "radio":{title:"Emergency Radio",src:"https://www.broadcastify.com/webPlayer/40500"}
+};
 
-  function updateCountdown() {
-    refreshCountdown.textContent = remaining;
-    remaining--;
-    if (remaining < 0) location.reload();
-  }
+/* ===== DEFAULT CONFIG ===== */
+const defaults={
+  "left-1":library.traffic,
+  "center-top":library.radar,
+  "right-top":library.nws
+};
 
-  updateTime();
-  updateCountdown();
-  setInterval(updateTime, 1000);
-  setInterval(updateCountdown, 1000);
-</script>
+/* ===== LOAD / SAVE ===== */
+let config=JSON.parse(localStorage.getItem("dashboardConfig"))||structuredClone(defaults);
+function save(){localStorage.setItem("dashboardConfig",JSON.stringify(config))}
 
-<!-- PANEL CONFIG + EDIT MODE -->
-<script>
-  const panelConfig = {
-    "left-1": { title: "Traffic Camera", src: "https://webcam.io/webcams/MpbQgP?embed=true" },
-    "center-top": { title: "Radar", src: "https://embed.ventusky.com/?p=38.98;-81.21;7&l=radar" }
-  };
-
-  function renderPanels() {
-    document.querySelectorAll(".panel").forEach(panel => {
-      const id = panel.dataset.panelId;
-      const cfg = panelConfig[id] || {};
-
-      panel.innerHTML = `
-        <div class="panel-header">
-          <span>${cfg.title || ""}</span>
-          <span class="edit-btn" onclick="editPanel('${id}')">Edit</span>
-        </div>
-        <div class="panel-body">
-          ${cfg.src ? `<iframe src="${cfg.src}" loading="lazy"></iframe>` : ""}
-        </div>
-      `;
-    });
-  }
-
-  function editPanel(id) {
-    const panel = document.querySelector(`[data-panel-id="${id}"]`);
-    const cfg = panelConfig[id] || {};
-
-    panel.innerHTML = `
-      <div class="panel-header">Editing: ${id}</div>
-      <div class="edit-form">
-        <label>Panel Title</label>
-        <input id="title-${id}" value="${cfg.title || ""}">
-        <label>iframe URL</label>
-        <input id="src-${id}" value="${cfg.src || ""}">
-        <div class="edit-actions">
-          <button class="apply-btn" onclick="applyEdit('${id}')">Apply</button>
-          <button class="cancel-btn" onclick="renderPanels()">Cancel</button>
-        </div>
+/* ===== RENDER ===== */
+function render(){
+  document.querySelectorAll(".panel").forEach(p=>{
+    const id=p.dataset.id, c=config[id]||{};
+    p.innerHTML=`
+      <div class="panel-header">
+        <span>${c.title||""}</span>
+        <span class="edit-btn" onclick="edit('${id}')">Edit</span>
       </div>
-    `;
-  }
+      <div class="panel-body">
+        ${c.src?`<iframe src="${c.src}" loading="lazy"></iframe>`:""}
+      </div>`;
+  });
+}
 
-  function applyEdit(id) {
-    panelConfig[id] = {
-      title: document.getElementById(`title-${id}`).value,
-      src: document.getElementById(`src-${id}`).value
-    };
-    renderPanels();
-  }
+/* ===== EDIT MODE ===== */
+function edit(id){
+  const c=config[id]||{};
+  document.querySelector(`[data-id="${id}"]`).innerHTML=`
+    <div class="panel-header">Edit Panel</div>
+    <div class="edit-form">
+      <label>Preset</label>
+      <select onchange="applyPreset('${id}',this.value)">
+        ${Object.keys(library).map(k=>`<option value="${k}">${k||"Custom"}</option>`).join("")}
+      </select>
+      <label>Title</label>
+      <input id="t-${id}" value="${c.title||""}">
+      <label>iframe URL</label>
+      <input id="s-${id}" value="${c.src||""}">
+      <div class="edit-actions">
+        <button class="apply" onclick="apply('${id}')">Apply</button>
+        <button class="reset" onclick="resetPanel('${id}')">Reset</button>
+        <button class="cancel" onclick="render()">Cancel</button>
+      </div>
+    </div>`;
+}
 
-  renderPanels();
+function applyPreset(id,key){
+  if(!library[key])return;
+  document.getElementById(`t-${id}`).value=library[key].title;
+  document.getElementById(`s-${id}`).value=library[key].src;
+}
+
+function apply(id){
+  config[id]={title:document.getElementById(`t-${id}`).value,
+              src:document.getElementById(`s-${id}`).value};
+  save(); render();
+}
+
+function resetPanel(id){
+  if(defaults[id]) config[id]=structuredClone(defaults[id]);
+  else delete config[id];
+  save(); render();
+}
+
+render();
 </script>
 
 </body>
