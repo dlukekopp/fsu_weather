@@ -23,34 +23,55 @@ body{
 .header-bar{
   min-height:var(--header-height);
   display:grid;
-  grid-template-columns:1fr 1fr 1fr;
+  grid-template-columns:1fr 1fr;
   padding:10px 16px 12px;
   background:#020617f2;
   border-bottom:1px solid var(--border);
   gap:12px;
 }
-.header-left{display:flex;flex-direction:column}
+.header-left{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+}
 .header-title{font-size:18px;font-weight:700}
-.header-meta{font-size:12px;color:var(--muted);margin-top:4px}
-.header-center{}
+.header-meta{
+  font-size:12px;
+  color:var(--muted);
+  margin-top:4px;
+}
+.separator{margin:0 6px}
+
 .header-right{
   font-size:12px;
   color:var(--muted);
   line-height:1.4;
   max-width:90%;
+  justify-self:end;
+  text-align:right;
 }
-.separator{margin:0 6px}
+.header-right a{
+  color:var(--text);
+  text-decoration:none;
+}
+.header-right a:hover{
+  text-decoration:underline;
+}
 
 /* ===== DASHBOARD ===== */
 .dashboard{
-  flex:1; display:grid;
+  flex:1;
+  display:grid;
   grid-template-columns:var(--col1) var(--col2) var(--col3);
   grid-template-rows:1fr 1fr;
-  gap:var(--gap); padding:var(--gap);
+  gap:var(--gap);
+  padding:var(--gap);
 }
 .column-left{
-  grid-column:1; grid-row:1/span 2;
-  display:grid; grid-template-rows:repeat(3,1fr);
+  grid-column:1;
+  grid-row:1/span 2;
+  display:grid;
+  grid-template-rows:repeat(3,1fr);
   gap:var(--gap);
 }
 
@@ -59,7 +80,8 @@ body{
   background:var(--panel);
   border:1px solid var(--border);
   border-radius:8px;
-  display:flex; flex-direction:column;
+  display:flex;
+  flex-direction:column;
   overflow:hidden;
 }
 .panel-header{
@@ -68,7 +90,8 @@ body{
   font-weight:bold;
   color:var(--muted);
   border-bottom:1px solid var(--border);
-  display:flex; justify-content:space-between;
+  display:flex;
+  justify-content:space-between;
 }
 .panel-body{flex:1}
 .panel-body iframe{width:100%;height:100%;border:none}
@@ -79,14 +102,26 @@ body{
 .edit-form{padding:10px;font-size:12px}
 .edit-form label{display:block;margin-top:6px;color:var(--muted)}
 .edit-form input, .edit-form select{
-  width:100%;padding:6px;margin-top:2px;
-  background:#020617;color:#fff;
-  border:1px solid var(--border);border-radius:4px;
+  width:100%;
+  padding:6px;
+  margin-top:2px;
+  background:#020617;
+  color:#fff;
+  border:1px solid var(--border);
+  border-radius:4px;
 }
-.actions{display:flex;gap:6px;margin-top:10px}
+.actions{
+  display:flex;
+  gap:6px;
+  margin-top:10px;
+}
 .actions button{
-  flex:1;padding:6px;border:none;border-radius:4px;
-  cursor:pointer;font-size:12px;
+  flex:1;
+  padding:6px;
+  border:none;
+  border-radius:4px;
+  cursor:pointer;
+  font-size:12px;
 }
 .apply{background:#2563eb;color:#fff}
 .reset{background:#7c2d12;color:#fff}
@@ -95,10 +130,13 @@ body{
 /* ===== FOOTER ===== */
 footer{
   height:var(--footer-height);
-  display:flex;align-items:center;justify-content:center;
+  display:flex;
+  align-items:center;
+  justify-content:center;
   background:#020617f2;
   border-top:1px solid var(--border);
-  font-size:12px;color:var(--muted);
+  font-size:12px;
+  color:var(--muted);
 }
 footer a{color:var(--muted);text-decoration:none;padding:0 6px}
 footer span{opacity:.5}
@@ -118,8 +156,6 @@ footer span{opacity:.5}
       Refresh in <span id="refreshCountdown"></span>s
     </div>
   </div>
-
-  <div class="header-center"></div>
 
   <div class="header-right" id="wvdeHeader">
     Loading WVDE closures…
@@ -159,7 +195,8 @@ function updateCountdown(){
   remaining--;
   if(remaining < 0) location.reload();
 }
-updateTime(); updateCountdown();
+updateTime();
+updateCountdown();
 setInterval(updateTime,1000);
 setInterval(updateCountdown,1000);
 
@@ -219,20 +256,25 @@ function edit(id){
 
 function selectSource(id,key){
   const s=PANEL_SOURCES[key];
-  if(!s)return;
+  if(!s) return;
   document.getElementById(`title-${id}`).value=s.title;
   document.getElementById(`src-${id}`).value=s.src;
 }
 
 function apply(id){
-  config[id]={title:document.getElementById(`title-${id}`).value,
-              src:document.getElementById(`src-${id}`).value};
-  save(); render();
+  config[id]={
+    title:document.getElementById(`title-${id}`).value,
+    src:document.getElementById(`src-${id}`).value
+  };
+  save();
+  render();
 }
+
 function resetPanel(id){
   if(DEFAULTS[id]) config[id]=structuredClone(DEFAULTS[id]);
   else delete config[id];
-  save(); render();
+  save();
+  render();
 }
 render();
 
@@ -240,25 +282,29 @@ render();
 fetch("https://api.allorigins.win/raw?url=https://wveis.k12.wv.us/closings/rss.php")
   .then(r=>r.text())
   .then(xml=>{
-    const doc=new DOMParser().parseFromString(xml,"text/xml");
-    const items=[...doc.querySelectorAll("item")];
-    const counties=["Marion","Harrison","Monongalia"];
-    const matches=items.filter(i=>counties.some(c=>i.querySelector("title").textContent.includes(c)));
+    const doc = new DOMParser().parseFromString(xml,"text/xml");
+    const items = [...doc.querySelectorAll("item")];
+    const counties = ["Marion","Harrison","Monongalia"];
+    const matches = items.filter(i =>
+      counties.some(c => i.querySelector("title").textContent.includes(c))
+    );
 
-    if(matches.length===0){
-      wvdeHeader.textContent="No county closures or delays reported.";
+    if(matches.length === 0){
+      wvdeHeader.textContent = "No county closures or delays reported.";
       return;
     }
 
-    wvdeHeader.innerHTML = matches.map(i=>`
+    wvdeHeader.innerHTML = matches.map(i => `
       <div>
-        <strong>${i.querySelector("title").textContent}</strong><br>
+        <a href="https://wveis.k12.wv.us/closings/" target="_blank">
+          <strong>${i.querySelector("title").textContent}</strong>
+        </a><br>
         ${i.querySelector("description").textContent}
       </div>
     `).join("");
   })
   .catch(()=>{
-    wvdeHeader.textContent="WVDE data unavailable.";
+    wvdeHeader.textContent = "WVDE data unavailable.";
   });
 </script>
 
