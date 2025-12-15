@@ -10,6 +10,7 @@
   --bg:#0b1220; --panel:#020617; --border:#1e293b;
   --text:#fff; --muted:rgba(255,255,255,.7);
   --gap:8px; --col1:35%; --col2:40%; --col3:25%;
+  --header-height:64px; --footer-height:36px;
 }
 *{box-sizing:border-box}
 body{
@@ -18,24 +19,29 @@ body{
   display:flex; flex-direction:column;
 }
 
-/* HEADER */
-header{
+/* ===== HEADER ===== */
+.header-bar{
+  min-height:var(--header-height);
   display:grid;
   grid-template-columns:1fr 1fr 1fr;
-  padding:10px 16px;
-  border-bottom:1px solid var(--border);
+  padding:10px 16px 12px;
   background:#020617f2;
+  border-bottom:1px solid var(--border);
   gap:12px;
 }
-.header-left h1{margin:0;font-size:18px}
-.header-meta{font-size:12px;color:var(--muted)}
+.header-left{display:flex;flex-direction:column}
+.header-title{font-size:18px;font-weight:700}
+.header-meta{font-size:12px;color:var(--muted);margin-top:4px}
+.header-center{}
 .header-right{
   font-size:12px;
   color:var(--muted);
   line-height:1.4;
+  max-width:90%;
 }
+.separator{margin:0 6px}
 
-/* DASHBOARD */
+/* ===== DASHBOARD ===== */
 .dashboard{
   flex:1; display:grid;
   grid-template-columns:var(--col1) var(--col2) var(--col3);
@@ -44,47 +50,55 @@ header{
 }
 .column-left{
   grid-column:1; grid-row:1/span 2;
-  display:grid; grid-template-rows:repeat(3,1fr); gap:var(--gap);
+  display:grid; grid-template-rows:repeat(3,1fr);
+  gap:var(--gap);
 }
 
-/* PANELS */
+/* ===== PANELS ===== */
 .panel{
-  background:var(--panel); border:1px solid var(--border);
-  border-radius:8px; display:flex; flex-direction:column;
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:8px;
+  display:flex; flex-direction:column;
   overflow:hidden;
 }
 .panel-header{
-  padding:6px 10px; font-size:12px; font-weight:bold;
-  color:var(--muted); border-bottom:1px solid var(--border);
+  padding:6px 10px;
+  font-size:12px;
+  font-weight:bold;
+  color:var(--muted);
+  border-bottom:1px solid var(--border);
   display:flex; justify-content:space-between;
 }
 .panel-body{flex:1}
 .panel-body iframe{width:100%;height:100%;border:none}
-.edit-btn{display:none;cursor:pointer;font-size:11px}
+.edit-btn{display:none;font-size:11px;cursor:pointer}
 .panel:hover .edit-btn{display:inline}
 
-/* EDIT UI */
+/* ===== EDIT UI ===== */
 .edit-form{padding:10px;font-size:12px}
 .edit-form label{display:block;margin-top:6px;color:var(--muted)}
 .edit-form input, .edit-form select{
-  width:100%; padding:6px; margin-top:2px;
-  background:#020617; color:#fff;
-  border:1px solid var(--border); border-radius:4px;
+  width:100%;padding:6px;margin-top:2px;
+  background:#020617;color:#fff;
+  border:1px solid var(--border);border-radius:4px;
 }
 .actions{display:flex;gap:6px;margin-top:10px}
 .actions button{
-  flex:1; padding:6px; border:none; border-radius:4px;
-  cursor:pointer; font-size:12px;
+  flex:1;padding:6px;border:none;border-radius:4px;
+  cursor:pointer;font-size:12px;
 }
 .apply{background:#2563eb;color:#fff}
 .reset{background:#7c2d12;color:#fff}
 .cancel{background:#374151;color:#fff}
 
-/* FOOTER */
+/* ===== FOOTER ===== */
 footer{
-  padding:8px; font-size:12px; text-align:center;
+  height:var(--footer-height);
+  display:flex;align-items:center;justify-content:center;
+  background:#020617f2;
   border-top:1px solid var(--border);
-  background:#020617f2; color:var(--muted);
+  font-size:12px;color:var(--muted);
 }
 footer a{color:var(--muted);text-decoration:none;padding:0 6px}
 footer span{opacity:.5}
@@ -93,15 +107,19 @@ footer span{opacity:.5}
 
 <body>
 
-<header>
+<header class="header-bar">
   <div class="header-left">
-    <h1>Weather & Operations Dashboard</h1>
+    <div class="header-title">Weather & Operations Dashboard</div>
     <div class="header-meta">
-      <span id="time12"></span> | <span id="time24"></span>
+      <span id="time12"></span>
+      <span class="separator">|</span>
+      <span id="time24"></span>
+      <span class="separator">•</span>
+      Refresh in <span id="refreshCountdown"></span>s
     </div>
   </div>
 
-  <div></div>
+  <div class="header-center"></div>
 
   <div class="header-right" id="wvdeHeader">
     Loading WVDE closures…
@@ -127,16 +145,25 @@ footer span{opacity:.5}
 </footer>
 
 <script>
-/* ===== CLOCK ===== */
-setInterval(()=>{
-  const n=new Date();
-  time12.textContent=n.toLocaleTimeString("en-US");
-  time24.textContent=n.toLocaleTimeString("en-GB");
-},1000);
+/* ===== CLOCK + REFRESH ===== */
+const REFRESH_INTERVAL = 600;
+let remaining = REFRESH_INTERVAL;
 
-/***********************
- * PANEL SOURCE LIBRARY
- ***********************/
+function updateTime(){
+  const now = new Date();
+  time12.textContent = now.toLocaleTimeString("en-US");
+  time24.textContent = now.toLocaleTimeString("en-GB");
+}
+function updateCountdown(){
+  refreshCountdown.textContent = remaining;
+  remaining--;
+  if(remaining < 0) location.reload();
+}
+updateTime(); updateCountdown();
+setInterval(updateTime,1000);
+setInterval(updateCountdown,1000);
+
+/* ===== PANEL SOURCES ===== */
 const PANEL_SOURCES = {
   "":{label:"Custom",title:"",src:""},
   "traffic":{label:"Traffic Camera",title:"Traffic Camera",src:"https://webcam.io/webcams/MpbQgP?embed=true"},
@@ -153,7 +180,6 @@ const DEFAULTS = {
 };
 
 let config = JSON.parse(localStorage.getItem("dashboardConfig")) || structuredClone(DEFAULTS);
-
 function save(){ localStorage.setItem("dashboardConfig", JSON.stringify(config)); }
 
 function render(){
@@ -203,19 +229,15 @@ function apply(id){
               src:document.getElementById(`src-${id}`).value};
   save(); render();
 }
-
 function resetPanel(id){
   if(DEFAULTS[id]) config[id]=structuredClone(DEFAULTS[id]);
   else delete config[id];
   save(); render();
 }
-
 render();
 
-/***********************
- * WVDE RSS (HEADER)
- ***********************/
-fetch("https://wveis.k12.wv.us/closings/rss.php")
+/* ===== WVDE RSS (CORS SAFE) ===== */
+fetch("https://api.allorigins.win/raw?url=https://wveis.k12.wv.us/closings/rss.php")
   .then(r=>r.text())
   .then(xml=>{
     const doc=new DOMParser().parseFromString(xml,"text/xml");
@@ -228,12 +250,12 @@ fetch("https://wveis.k12.wv.us/closings/rss.php")
       return;
     }
 
-    wvdeHeader.innerHTML=matches.map(i=>{
-      return `<div>
+    wvdeHeader.innerHTML = matches.map(i=>`
+      <div>
         <strong>${i.querySelector("title").textContent}</strong><br>
         ${i.querySelector("description").textContent}
-      </div>`;
-    }).join("");
+      </div>
+    `).join("");
   })
   .catch(()=>{
     wvdeHeader.textContent="WVDE data unavailable.";
