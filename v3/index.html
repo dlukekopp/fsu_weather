@@ -7,14 +7,14 @@
 
 <style>
 :root{
-  --bg:#0b1220;
-  --panel:#020617;
-  --border:#1e293b;
-  --text:#ffffff;
-  --muted:rgba(255,255,255,0.7);
-  --accent:#93c5fd;
-  --gap:8px;
-  --footer-height:36px;
+  --bg: transparent;
+  --panel: transparent;
+  --border: transparent;
+  --text: #ffffff;
+  --muted: rgba(255,255,255,0.7);
+  --accent: #93c5fd;
+  --gap: 8px;
+  --footer-height: 36px;
 }
 
 html, body{
@@ -31,7 +31,6 @@ body{
   font-family:Arial,sans-serif;
   display:flex;
   flex-direction:column;
-  min-height:0;
 }
 
 /* HEADER */
@@ -39,33 +38,46 @@ body{
   display:grid;
   grid-template-columns:1fr 1fr;
   padding:10px 16px;
-  background:rgba(2,6,23,.95);
   border-bottom:1px solid var(--border);
 }
 
-.header-left{display:flex;flex-direction:column}
-.header-title{font-size:18px;font-weight:700}
-.header-meta{font-size:12px;color:var(--muted);margin-top:4px}
-.header-controls{font-size:12px;margin-top:4px;color:var(--accent)}
-.header-controls span{cursor:pointer}
-.header-controls span:hover{text-decoration:underline}
+.header-left{
+  display:flex;
+  flex-direction:column;
+}
+
+.header-title{
+  font-size:18px;
+  font-weight:700;
+}
+
+.header-meta{
+  font-size:12px;
+  color:var(--muted);
+}
+
+.header-controls{
+  font-size:12px;
+  color:var(--accent);
+}
+
+.header-controls span{
+  cursor:pointer;
+}
+
+.header-controls span:hover{
+  text-decoration:underline;
+}
 
 .header-right{
   font-size:12px;
-  color:var(--muted);
-  line-height:1.4;
-  max-width:90%;
-  justify-self:end;
   text-align:right;
+  color:var(--muted);
 }
 
-.header-right a{color:var(--text);text-decoration:none}
-.header-right a:hover{text-decoration:underline}
-
-/* DASHBOARD */
+/* DASHBOARD GRID */
 .dashboard{
   flex:1;
-  min-height:0;
   display:grid;
   grid-template-columns:7fr 8fr 5fr;
   grid-template-rows:1fr 1fr;
@@ -74,12 +86,10 @@ body{
 }
 
 .column-left{
-  grid-column:1;
-  grid-row:1/span 2;
+  grid-row:1 / span 2;
   display:grid;
   grid-template-rows:repeat(3,1fr);
   gap:var(--gap);
-  min-height:0;
 }
 
 /* PANELS */
@@ -89,7 +99,6 @@ body{
   border-radius:8px;
   display:flex;
   flex-direction:column;
-  min-height:0;
 }
 
 .panel-header{
@@ -99,14 +108,11 @@ body{
   border-bottom:1px solid var(--border);
   display:flex;
   justify-content:space-between;
-  align-items:center;
 }
 
 .panel-actions span{
   display:none;
   cursor:pointer;
-  opacity:.7;
-  margin-left:6px;
 }
 
 body.interactive .panel:hover .panel-actions span{
@@ -115,7 +121,6 @@ body.interactive .panel:hover .panel-actions span{
 
 .panel-body{
   flex:1;
-  min-height:0;
   padding:8px;
   overflow:auto;
 }
@@ -126,20 +131,17 @@ body.interactive .panel:hover .panel-actions span{
   border:none;
 }
 
-.panel-body .note-text{
+.note-text{
   white-space:pre-wrap;
-  font-size:13px;
-  line-height:1.4;
 }
 
 /* FOOTER */
 footer{
   height:var(--footer-height);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  background:rgba(2,6,23,.95);
   border-top:1px solid var(--border);
+  display:flex;
+  justify-content:center;
+  align-items:center;
   font-size:12px;
 }
 
@@ -161,7 +163,7 @@ body.maximize footer{
 
 <header class="header-bar">
   <div class="header-left">
-    <div class="header-title" id="dashboardTitle">Dashboard</div>
+    <div class="header-title" id="dashboardTitle"></div>
     <div class="header-meta">
       <span id="time12"></span> | <span id="time24"></span>
       • Refresh in <span id="refreshCountdown"></span>s
@@ -190,173 +192,134 @@ body.maximize footer{
 <footer id="footer"></footer>
 
 <script>
-/* ================= GLOBAL STATE ================= */
-let ADMIN = null;
-let CONFIG = {};
-let USER = JSON.parse(localStorage.getItem("dashboardConfig")) || {};
+let ADMIN, CONFIG = {}, USER = JSON.parse(localStorage.getItem("dashboardConfig")) || {};
 
-/* ================= LOAD ADMIN CONFIG ================= */
 fetch("admin-config.json")
   .then(r => r.json())
   .then(cfg => {
     ADMIN = cfg;
     applyBranding();
-    initDashboard();
-  })
-  .catch(() => {
-    alert("Admin configuration failed to load.");
+    init();
   });
 
-/* ================= BRANDING ================= */
 function applyBranding(){
-  document.getElementById("dashboardTitle").textContent = ADMIN.branding.title;
+  dashboardTitle.textContent = ADMIN.branding.title;
+
+  const map = {
+    background: "--bg",
+    panel: "--panel",
+    border: "--border",
+    text: "--text",
+    muted: "--muted",
+    accent: "--accent"
+  };
 
   Object.entries(ADMIN.branding.colors).forEach(([k,v])=>{
-    document.documentElement.style.setProperty(`--${k}`,v);
+    document.documentElement.style.setProperty(map[k], v);
   });
 
-  const footer = document.getElementById("footer");
   footer.innerHTML = ADMIN.footer.links
     .map(l => `<a href="${l.url}" target="_blank">${l.label}</a>`)
     .join(" | ");
 }
 
-/* ================= CLOCK ================= */
-let remaining;
-function startClock(){
-  remaining = ADMIN.defaults.refreshIntervalSeconds;
-  setInterval(()=>{
-    const d=new Date();
-    time12.textContent=d.toLocaleTimeString("en-US");
-    time24.textContent=d.toLocaleTimeString("en-GB");
-    refreshCountdown.textContent=remaining--;
-    if(remaining < 0) location.reload();
-  },1000);
-}
-
-/* ================= DASHBOARD INIT ================= */
-function initDashboard(){
+function init(){
   CONFIG = { ...ADMIN.panels.defaultAssignments, ...USER };
   render();
   startClock();
   loadWVDE();
 }
 
-/* ================= RENDER ================= */
 function render(){
-  document.querySelectorAll(".panel").forEach(panel=>{
-    const id = panel.dataset.id;
-    const sourceKey = CONFIG[id];
-    const source = ADMIN.sources[sourceKey];
+  document.querySelectorAll(".panel").forEach(p=>{
+    const id = p.dataset.id;
+    const srcKey = CONFIG[id];
+    const src = ADMIN.sources[srcKey];
 
-    panel.innerHTML = `
+    p.innerHTML = `
       <div class="panel-header">
-        <span>${source?.title || "Empty Panel"}</span>
+        ${src?.title || "Empty Panel"}
         <span class="panel-actions">
-          ${source?.type==="iframe" ? `
-            <span onclick="refreshPanel('${id}')">⟳</span>
-            <span onclick="openPanel('${id}')">↗</span>` : ""}
+          ${src?.type==="iframe" ? `<span onclick="openPanel('${id}')">↗</span>` : ""}
           <span onclick="editPanel('${id}')">✏</span>
         </span>
       </div>
       <div class="panel-body">
-        ${!source ? `<div style="color:var(--muted)">Click ✏ to add content</div>` :
-          source.type==="notes"
+        ${!src ? "Click ✏ to add content" :
+          src.type==="notes"
             ? `<div class="note-text">${USER[id]?.content || ""}</div>`
-            : `<iframe src="${source.src}" loading="lazy"></iframe>`}
+            : `<iframe src="${src.src}"></iframe>`}
       </div>`;
   });
 }
 
-/* ================= PANEL ACTIONS ================= */
-function openPanel(id){
-  const src = ADMIN.sources[CONFIG[id]]?.src;
-  if(src) window.open(src,"_blank");
-}
-
-function refreshPanel(id){
-  const iframe = document.querySelector(`[data-id="${id}"] iframe`);
-  if(iframe) iframe.src = iframe.src;
-}
-
-/* ================= EDIT PANEL ================= */
 function editPanel(id){
-  const currentKey = CONFIG[id];
-  const panel = document.querySelector(`[data-id="${id}"]`);
-
-  panel.innerHTML = `
+  const current = CONFIG[id];
+  document.querySelector(`[data-id="${id}"]`).innerHTML = `
     <div class="panel-header">Edit Panel</div>
     <div class="panel-body">
-      <label>Source</label><br>
-      <select id="sourceSelect">
+      <select id="srcSel">
         ${Object.entries(ADMIN.sources).map(([k,v]) =>
-          `<option value="${k}" ${k===currentKey?"selected":""}>${v.title}</option>`
+          `<option value="${k}" ${k===current?"selected":""}>${v.title}</option>`
         ).join("")}
       </select><br><br>
-
       <button onclick="applyEdit('${id}')">Apply</button>
       <button onclick="render()">Cancel</button>
     </div>`;
 }
 
 function applyEdit(id){
-  const key = document.getElementById("sourceSelect").value;
-  CONFIG[id] = key;
-  USER[id] = USER[id] || {};
+  const val = document.getElementById("srcSel").value;
+  CONFIG[id] = val;
+  USER[id] = {};
   localStorage.setItem("dashboardConfig", JSON.stringify(USER));
   render();
 }
 
-/* ================= MODES ================= */
-interactiveBtn.onclick = ()=>document.body.className="interactive";
-maximizeBtn.onclick = ()=>{
+function openPanel(id){
+  const s = ADMIN.sources[CONFIG[id]];
+  if(s?.src) window.open(s.src,"_blank");
+}
+
+function startClock(){
+  let remaining = ADMIN.defaults.refreshIntervalSeconds;
+  setInterval(()=>{
+    const d=new Date();
+    time12.textContent=d.toLocaleTimeString("en-US");
+    time24.textContent=d.toLocaleTimeString("en-GB");
+    refreshCountdown.textContent=remaining--;
+    if(remaining<0) location.reload();
+  },1000);
+}
+
+resetBtn.onclick=()=>{
+  if(confirm("Reset dashboard and delete all notes?")){
+    localStorage.removeItem("dashboardConfig");
+    USER={};
+    CONFIG={...ADMIN.panels.defaultAssignments};
+    document.body.className="interactive";
+    render();
+  }
+};
+
+interactiveBtn.onclick=()=>document.body.className="interactive";
+maximizeBtn.onclick=()=>{
   document.body.className="maximize";
   document.documentElement.requestFullscreen().catch(()=>{});
 };
 
-/* ================= RESET ================= */
-resetBtn.onclick = ()=>{
-  const msg =
-    "Reset Dashboard?\n\n" +
-    "This will reset all dashboard panels to their default configuration.\n\n" +
-    "Any notes or text you have added will be permanently deleted.\n\n" +
-    "This action cannot be undone.";
-
-  if(confirm(msg)){
-    localStorage.clear();
-    location.reload();
-  }
-};
-
-/* ================= WVDE ================= */
 function loadWVDE(){
-  if(!ADMIN.header.showWVDE) return;
-
   fetch("https://api.allorigins.win/raw?url=https://wveis.k12.wv.us/closings/rss.php")
     .then(r=>r.text())
-    .then(xml=>{
-      const doc=new DOMParser().parseFromString(xml,"text/xml");
-      const rows=[...doc.querySelectorAll("item")]
+    .then(t=>{
+      const doc=new DOMParser().parseFromString(t,"text/xml");
+      const items=[...doc.querySelectorAll("item")]
         .filter(i=>ADMIN.header.wvde.counties.some(c=>i.textContent.includes(c)))
         .slice(0,ADMIN.header.wvde.maxLines)
-        .map(i=>{
-          const name=i.querySelector("title").textContent.replace("All schools in ","");
-          const desc=i.querySelector("description").textContent;
-          let status="Update";
-          if(desc.includes("closed"))status="Closed";
-          else if(desc.includes("delay"))status="Delay";
-          else if(desc.includes("non-traditional"))status="NTI";
-
-          const dateMatch = desc.match(
-            /(Mon\.|Tue\.|Wed\.|Thu\.|Fri\.|Sat\.|Sun\.)\s+[A-Za-z]{3}\.\s+\d{1,2},\s+\d{4}/
-          );
-
-          return `<strong>${name}</strong> — ${status}${dateMatch?` (${dateMatch[0]})`:""}`;
-        });
-
-      wvdeHeader.innerHTML = rows.length
-        ? `<a href="${ADMIN.header.wvde.link}" target="_blank">${rows.join("<br>")}</a>`
-        : "No county closures or delays reported.";
+        .map(i=>i.querySelector("title").textContent);
+      wvdeHeader.innerHTML = items.length
+        ? `<a href="${ADMIN.header.wvde.link}" target="_blank">${items.join("<br>")}</a>`
+        : "No county closures reported.";
     });
 }
 </script>
