@@ -5,12 +5,11 @@
 <title>Weather & Operations Dashboard</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-
 <style>
 :root {
   --bg: #0f0f0f;
   --panel: #1a1a1a;
-  --border: #444; /* slightly lighter to enhance grid visibility */
+  --border: #444;
   --text: #ffffff;
   --muted: #e6e6e6;
   --accent: #860038;
@@ -75,7 +74,36 @@ body {
   justify-self: end;
 }
 
-/* WVDE forced white */
+/* WVDE Status Indicator */
+.wvde-status {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+
+.wvde-status.checking {
+  background: #1e3a5f;
+  color: #64b5f6;
+}
+
+.wvde-status.success {
+  background: #1b5e20;
+  color: #81c784;
+}
+
+.wvde-status.warning {
+  background: #e65100;
+  color: #ffb74d;
+}
+
+.wvde-status.error {
+  background: #b71c1c;
+  color: #ef5350;
+}
+
 .wvde-link,
 .wvde-link:visited,
 .wvde-link:hover,
@@ -188,7 +216,6 @@ body.maximize footer {
 }
 </style>
 
-
 </head>
 
 <body class="interactive">
@@ -206,7 +233,10 @@ body.maximize footer {
       <span id="resetBtn">Reset Dashboard</span>
     </div>
   </div>
-  <div class="header-right" id="wvdeHeader"></div>
+  <div class="header-right">
+    <div id="wvdeStatus"></div>
+    <div id="wvdeHeader"></div>
+  </div>
 </header>
 
 <div class="dashboard">
@@ -232,7 +262,7 @@ body.maximize footer {
 
 const STORAGE_KEY = "dashboardConfig";
 let ADMIN = null;
-let STORE = loadStore(); // { panels: {...} }
+let STORE = loadStore();
 
 /* Load admin-config.json */
 fetch("admin-config.json")
@@ -255,37 +285,29 @@ function loadStore(){
   try{
     const parsed = JSON.parse(raw);
 
-    // If already v2 shape
     if (parsed && typeof parsed === "object" && parsed.panels && typeof parsed.panels === "object") {
       return parsed;
     }
 
-    // Migration path: legacy "flat" object (e.g., { "left-1": {...}, "left-2": {...} })
-    // We'll interpret values and convert to v2.
     const migrated = { panels: {} };
     if (parsed && typeof parsed === "object") {
       for (const [panelId, val] of Object.entries(parsed)) {
         if (!panelId.includes("-")) continue;
 
-        // val might be {} or {content:""} or {customUrl:""} or something else
         migrated.panels[panelId] = migrated.panels[panelId] || {};
 
         if (val && typeof val === "object") {
           if (typeof val.content === "string") migrated.panels[panelId].content = val.content;
           if (typeof val.customUrl === "string") migrated.panels[panelId].customUrl = val.customUrl;
-
-          // Some older versions didn’t store sourceKey; leave it undefined to fall back to ADMIN default
           if (typeof val.sourceKey === "string") migrated.panels[panelId].sourceKey = val.sourceKey;
         }
       }
     }
 
-    // Save migrated format back
     localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
     return migrated;
 
   } catch(e){
-    // If corrupted, start clean
     return { panels: {} };
   }
 }
@@ -328,14 +350,11 @@ function getEffectiveSourceKey(panelId){
   const userState = getPanelUserState(panelId);
   const userKey = userState.sourceKey;
 
-  // Prefer user-selected sourceKey if it exists AND is valid
   if (userKey && ADMIN.sources[userKey]) return userKey;
 
-  // Otherwise fall back to admin defaultAssignments
   const defKey = ADMIN.panels.defaultAssignments[panelId];
   if (defKey && ADMIN.sources[defKey]) return defKey;
 
-  // If missing, return null
   return null;
 }
 
@@ -343,7 +362,6 @@ function getEffectiveIframeUrl(panelId, srcKey){
   const src = ADMIN.sources[srcKey];
   const userState = getPanelUserState(panelId);
 
-  // If user has customUrl AND this source allows editing, use it
   if (src?.type === "iframe" && src.allowEditUrl && userState.customUrl) {
     return userState.customUrl.trim();
   }
@@ -403,7 +421,6 @@ function renderPanelBody(panelId, srcKey, src){
     `;
   }
 
-  // iframe
   const url = getEffectiveIframeUrl(panelId, srcKey);
   if (!url) return `No URL configured. Click ✏ to update.`;
   return `<iframe src="${escapeAttr(url)}" loading="lazy"></iframe>`;
@@ -480,13 +497,10 @@ function applyEdit(panelId){
   const src = ADMIN.sources[newKey];
   const update = { sourceKey: newKey };
 
-  // Preserve notes content unless switching away from notes (we’ll keep it stored; harmless)
-  // For URL editing:
   if (src.allowEditUrl) {
     const input = document.getElementById(`customUrlInput-${panelId}`);
     update.customUrl = (input?.value || "").trim();
   } else {
-    // If switching to non-editable URL source, clear customUrl to avoid confusion
     update.customUrl = "";
   }
 
@@ -495,7 +509,6 @@ function applyEdit(panelId){
 }
 
 function resetPanelToDefault(panelId){
-  // Clear ONLY this panel’s overrides
   delete STORE.panels[panelId];
   saveStore();
   renderPanel(panelId);
@@ -504,7 +517,6 @@ function resetPanelToDefault(panelId){
 /* ---------- Notes ---------- */
 
 function saveNote(panelId, text){
-  // Save note content but do not force sourceKey; user chooses notes source explicitly.
   setPanelUserState(panelId, { content: text || "" });
 }
 
@@ -535,16 +547,13 @@ function refreshPanel(panelId){
   iframe.src = addCacheBuster(baseUrl);
 }
 
-/* Add/replace a cache-buster param safely */
 function addCacheBuster(url){
   try{
     const u = new URL(url, window.location.href);
     u.searchParams.set("_ts", Date.now().toString());
     return u.toString();
   }catch(e){
-    // Fallback for odd URLs like some .m3u8 or non-standard strings
     const join = url.includes("?") ? "&" : "?";
-    // Strip existing _ts if present (simple)
     const stripped = url.replace(/([?&])_ts=\d+/g, "$1").replace(/[?&]$/, "");
     return stripped + join + "_ts=" + Date.now();
   }
@@ -588,17 +597,47 @@ maximizeBtn.onclick = () => {
   document.documentElement.requestFullscreen().catch(()=>{});
 };
 
-/* ---------- WVDE ---------- */
+/* ---------- WVDE with Status Indicator ---------- */
+
+function setWVDEStatus(message, type) {
+  const statusEl = document.getElementById("wvdeStatus");
+  if (!statusEl) return;
+  
+  const icons = {
+    checking: "⏳",
+    success: "✓",
+    warning: "ℹ️",
+    error: "✗"
+  };
+  
+  statusEl.innerHTML = `<span class="wvde-status ${type}">${icons[type]} ${escapeHtml(message)}</span>`;
+}
 
 function loadWVDE(){
   if (!ADMIN?.header?.showWVDE) return;
 
+  setWVDEStatus("Checking for announcements...", "checking");
+
   fetch("https://api.allorigins.win/raw?url=https://wveis.k12.wv.us/closings/rss.php")
-    .then(r => r.text())
+    .then(r => {
+      if (!r.ok) throw new Error(`HTTP error: ${r.status}`);
+      return r.text();
+    })
     .then(xml => {
       const doc = new DOMParser().parseFromString(xml, "text/xml");
+      
+      const parseError = doc.querySelector("parsererror");
+      if (parseError) throw new Error("XML parsing failed");
 
-      const items = [...doc.querySelectorAll("item")]
+      const allItems = [...doc.querySelectorAll("item")];
+      
+      if (allItems.length === 0) {
+        setWVDEStatus("No announcements in feed", "warning");
+        wvdeHeader.textContent = "No school announcements at this time.";
+        return;
+      }
+
+      const items = allItems
         .filter(item =>
           ADMIN.header.wvde.counties.some(county =>
             item.querySelector("title")?.textContent.includes(county)
@@ -625,15 +664,22 @@ function loadWVDE(){
           return `<strong>${escapeHtml(countyName)}</strong> — ${escapeHtml(status)} on ${escapeHtml(dateText)}`;
         });
 
-      wvdeHeader.innerHTML = items.length
-        ? `<a class="wvde-link" href="${escapeAttr(ADMIN.header.wvde.link)}" target="_blank" rel="noopener noreferrer">
-             ${items.join("<br>")}
-           </a>`
-        : "No county closures or delays reported.";
+      if (items.length === 0) {
+        setWVDEStatus("No results for monitored counties", "warning");
+        wvdeHeader.textContent = "No announcements for your selected counties.";
+        return;
+      }
+
+      setWVDEStatus(`Found ${items.length} announcement${items.length !== 1 ? 's' : ''}`, "success");
+      
+      wvdeHeader.innerHTML = `<a class="wvde-link" href="${escapeAttr(ADMIN.header.wvde.link)}" target="_blank" rel="noopener noreferrer">
+           ${items.join("<br>")}
+         </a>`;
     })
     .catch((err) => {
       console.error("WVDE fetch failed:", err);
-      wvdeHeader.textContent = "WVDE data unavailable.";
+      setWVDEStatus("Failed to load feed", "error");
+      wvdeHeader.textContent = "Unable to retrieve school announcements.";
     });
 }
 
@@ -646,7 +692,6 @@ function escapeHtml(str){
 }
 
 function escapeAttr(str){
-  // attribute-safe version; reuse HTML escaping
   return escapeHtml(str);
 }
 </script>
