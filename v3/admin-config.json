@@ -119,6 +119,14 @@
       "allowEditUrl": false
     }
   },
+    "customURL": {
+      "type": "iframe",
+      "title": "Custom URL",
+      "src": "",
+      "allowEditUrl": true
+    }
+  },
+  
 
   "panels": {
     "layout": "7-panels",
