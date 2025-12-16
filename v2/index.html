@@ -15,26 +15,36 @@
   --accent:#93c5fd;
   --gap:8px;
 
-  --col1:35%;
-  --col2:40%;
-  --col3:25%;
+  /* Column proportions (no overflow with fr units) */
+  --col1:7fr;
+  --col2:8fr;
+  --col3:5fr;
+
+  --footer-height:36px;
 }
 
-*{box-sizing:border-box}
+/* ===== GLOBAL CONTAINMENT ===== */
+html, body{
+  height:100%;
+  margin:0;
+  overflow:hidden;
+}
+
+*{ box-sizing:border-box; }
 
 body{
-  margin:0;
-  min-height:100vh;
   background:var(--bg);
   color:var(--text);
   font-family:Arial,sans-serif;
   display:flex;
   flex-direction:column;
+  min-height:0;
 }
 
 /* ================= HEADER ================= */
 
 .header-bar{
+  flex:0 0 auto;
   display:grid;
   grid-template-columns:1fr 1fr;
   padding:10px 16px;
@@ -42,7 +52,10 @@ body{
   border-bottom:1px solid var(--border);
 }
 
-.header-left{display:flex;flex-direction:column}
+.header-left{
+  display:flex;
+  flex-direction:column;
+}
 
 .header-title{
   font-size:18px;
@@ -69,7 +82,7 @@ body{
   text-decoration:underline;
 }
 
-.separator{margin:0 6px}
+.separator{ margin:0 6px; }
 
 .header-right{
   font-size:12px;
@@ -78,25 +91,29 @@ body{
   max-width:90%;
   justify-self:end;
   text-align:right;
+  overflow:hidden;
 }
 
 /* ================= DASHBOARD ================= */
 
 .dashboard{
-  flex:1;
+  flex:1 1 auto;
+  min-height:0;
   display:grid;
   grid-template-columns:var(--col1) var(--col2) var(--col3);
   grid-template-rows:1fr 1fr;
   gap:var(--gap);
   padding:var(--gap);
+  overflow:hidden;
 }
 
 .column-left{
   grid-column:1;
-  grid-row:1/span 2;
+  grid-row:1 / span 2;
   display:grid;
   grid-template-rows:repeat(3,1fr);
   gap:var(--gap);
+  min-height:0;
 }
 
 /* ================= PANELS ================= */
@@ -107,10 +124,12 @@ body{
   border-radius:8px;
   display:flex;
   flex-direction:column;
+  min-height:0;
   overflow:hidden;
 }
 
 .panel-header{
+  flex:0 0 auto;
   padding:6px 10px;
   font-size:12px;
   font-weight:bold;
@@ -137,11 +156,13 @@ body.interactive .panel:hover .panel-action{
   display:inline;
 }
 
-.panel-action:hover{opacity:1}
+.panel-action:hover{ opacity:1; }
 
 .panel-body{
-  flex:1;
+  flex:1 1 auto;
+  min-height:0;
   padding:6px;
+  overflow:auto;
 }
 
 .panel-body iframe{
@@ -160,18 +181,21 @@ body.interactive .panel:hover .panel-action{
 
 .notes-edit{
   width:100%;
-  height:100%;
+  min-height:120px;
   background:#020617;
   color:#fff;
   border:1px solid var(--border);
   border-radius:4px;
   padding:6px;
-  resize:none;
+  resize:vertical;
 }
 
 /* ================= MAXIMIZE VIEW ================= */
 
-body.maximize .panel-header,
+body.maximize .panel-header{
+  display:none;
+}
+
 body.maximize footer{
   display:none;
 }
@@ -179,7 +203,7 @@ body.maximize footer{
 /* ================= FOOTER ================= */
 
 footer{
-  height:36px;
+  flex:0 0 var(--footer-height);
   display:flex;
   align-items:center;
   justify-content:center;
@@ -206,8 +230,10 @@ footer a{
       <span id="time12"></span> | <span id="time24"></span> • Refresh in <span id="refreshCountdown"></span>s
     </div>
     <div class="header-controls">
-      <span onclick="setInteractive()">Interactive Mode</span> •
-      <span onclick="setMaximize()">Maximize View</span> •
+      <span onclick="setInteractive()">Interactive Mode</span>
+      <span class="separator">•</span>
+      <span onclick="setMaximize()">Maximize View</span>
+      <span class="separator">•</span>
       <span onclick="resetDashboard()">Reset Dashboard</span>
     </div>
   </div>
@@ -220,6 +246,7 @@ footer a{
     <div class="panel" data-id="left-2"></div>
     <div class="panel" data-id="left-3"></div>
   </div>
+
   <div class="panel" data-id="center-top"></div>
   <div class="panel" data-id="right-top"></div>
   <div class="panel" data-id="center-bottom"></div>
@@ -236,6 +263,7 @@ footer a{
 /* ================= CLOCK ================= */
 const REFRESH_INTERVAL=600;
 let remaining=REFRESH_INTERVAL;
+
 function tick(){
   const d=new Date();
   time12.textContent=d.toLocaleTimeString("en-US");
@@ -243,7 +271,8 @@ function tick(){
   refreshCountdown.textContent=remaining;
   if(--remaining<0) location.reload();
 }
-tick(); setInterval(tick,1000);
+tick();
+setInterval(tick,1000);
 
 /* ================= PRESETS ================= */
 const PRESETS={
@@ -261,9 +290,8 @@ const DEFAULTS={
   "right-top":PRESETS.nws
 };
 
-let config=JSON.parse(localStorage.getItem("dashboardConfig"))||structuredClone(DEFAULTS);
-
-function save(){localStorage.setItem("dashboardConfig",JSON.stringify(config));}
+let config=JSON.parse(localStorage.getItem("dashboardConfig")) || structuredClone(DEFAULTS);
+function save(){ localStorage.setItem("dashboardConfig",JSON.stringify(config)); }
 
 /* ================= RENDER ================= */
 function render(){
@@ -301,39 +329,73 @@ function openPanel(id){
 }
 
 function refreshPanel(id){
-  const f=document.querySelector(`[data-id="${id}"] iframe`);
+  const f=document.querySelector(\`[data-id="\${id}"] iframe\`);
   if(f) f.src=f.src;
 }
 
 /* ================= EDIT ================= */
 function edit(id){
   const c=config[id]||{};
-  document.querySelector(`[data-id="${id}"]`).innerHTML=`
+  const presetKey=Object.keys(PRESETS).find(k=>PRESETS[k].src===c.src) || "notes";
+
+  document.querySelector(\`[data-id="\${id}"]\`).innerHTML=`
     <div class="panel-header">Edit Panel</div>
     <div class="panel-body">
-      <select id="preset-${id}">
+      <label>Source</label><br>
+      <select id="preset-${id}" onchange="presetChanged('${id}')">
         ${Object.entries(PRESETS).map(([k,v])=>
-          `<option value="${k}">${v.title}</option>`
+          `<option value="${k}" ${k===presetKey?"selected":""}>${v.title}</option>`
         ).join("")}
       </select><br><br>
-      <input id="title-${id}" placeholder="Title" value="${c.title||""}"><br><br>
-      <input id="src-${id}" placeholder="iframe URL" value="${c.src||""}"><br><br>
-      <textarea id="text-${id}" placeholder="Notes">${c.text||""}</textarea><br><br>
+
+      <label>Title</label><br>
+      <input id="title-${id}" value="${c.title||""}" style="width:100%"><br><br>
+
+      <div id="iframe-fields-${id}">
+        <label>iframe URL</label><br>
+        <input id="src-${id}" value="${c.src||""}" style="width:100%">
+      </div>
+
+      <div id="notes-fields-${id}">
+        <label>Notes</label>
+        <textarea id="text-${id}" class="notes-edit">${c.text||""}</textarea>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px">
+          Notes are stored locally in your browser and are not shared.
+        </div>
+      </div><br>
+
       <button onclick="apply('${id}')">Apply</button>
       <button onclick="render()">Cancel</button>
     </div>`;
+
+  presetChanged(id);
+}
+
+function presetChanged(id){
+  const key=document.getElementById(`preset-${id}`).value;
+  const p=PRESETS[key];
+
+  document.getElementById(`title-${id}`).value=p.title||"";
+  document.getElementById(`iframe-fields-${id}`).style.display=p.type==="iframe"?"block":"none";
+  document.getElementById(`notes-fields-${id}`).style.display=p.type==="notes"?"block":"none";
+
+  if(p.type==="iframe"){
+    document.getElementById(`src-${id}`).value=p.src||"";
+  }
 }
 
 function apply(id){
-  const preset=document.getElementById(`preset-${id}`).value;
-  const base=PRESETS[preset];
+  const key=document.getElementById(`preset-${id}`).value;
+  const p=PRESETS[key];
+
   config[id]={
-    type:base.type,
-    title:document.getElementById(`title-${id}`).value||base.title,
-    src:base.type==="iframe"?document.getElementById(`src-${id}`).value||base.src:undefined,
-    text:base.type==="notes"?document.getElementById(`text-${id}`).value:undefined
+    type:p.type,
+    title:document.getElementById(`title-${id}`).value,
+    src:p.type==="iframe"?document.getElementById(`src-${id}`).value:undefined,
+    text:p.type==="notes"?document.getElementById(`text-${id}`).value:undefined
   };
-  save(); render();
+  save();
+  render();
 }
 
 /* ================= MODES ================= */
