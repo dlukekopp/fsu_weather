@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Dashboard</title>
+<title>Weather & Operations Dashboard</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
@@ -11,8 +11,8 @@
   --panel: transparent;
   --border: transparent;
   --text: #ffffff;
-  --muted: rgba(255,255,255,0.7);
-  --accent: #93c5fd;
+  --muted: #e6e6e6;
+  --accent: #860038;
   --gap: 8px;
   --footer-height: 36px;
 }
@@ -73,9 +73,20 @@ body{
   font-size:12px;
   text-align:right;
   color:var(--muted);
+  max-width:90%;
+  justify-self:end;
 }
 
-/* DASHBOARD GRID */
+/* WVDE link forced white */
+.wvde-link,
+.wvde-link:visited,
+.wvde-link:hover,
+.wvde-link:active{
+  color:#ffffff;
+  text-decoration:none;
+}
+
+/* DASHBOARD */
 .dashboard{
   flex:1;
   display:grid;
@@ -113,6 +124,7 @@ body{
 .panel-actions span{
   display:none;
   cursor:pointer;
+  margin-left:6px;
 }
 
 body.interactive .panel:hover .panel-actions span{
@@ -131,10 +143,6 @@ body.interactive .panel:hover .panel-actions span{
   border:none;
 }
 
-.note-text{
-  white-space:pre-wrap;
-}
-
 /* FOOTER */
 footer{
   height:var(--footer-height);
@@ -151,7 +159,6 @@ footer a{
   padding:0 6px;
 }
 
-/* MAXIMIZE */
 body.maximize .panel-header,
 body.maximize footer{
   display:none;
@@ -194,13 +201,15 @@ body.maximize footer{
 <script>
 let ADMIN, CONFIG = {}, USER = JSON.parse(localStorage.getItem("dashboardConfig")) || {};
 
+/* LOAD ADMIN CONFIG */
 fetch("admin-config.json")
   .then(r => r.json())
   .then(cfg => {
     ADMIN = cfg;
     applyBranding();
     init();
-  });
+  })
+  .catch(() => alert("Admin configuration failed to load."));
 
 function applyBranding(){
   dashboardTitle.textContent = ADMIN.branding.title;
@@ -247,8 +256,11 @@ function render(){
       <div class="panel-body">
         ${!src ? "Click ✏ to add content" :
           src.type==="notes"
-            ? `<div class="note-text">${USER[id]?.content || ""}</div>`
-            : `<iframe src="${src.src}"></iframe>`}
+            ? `<div contenteditable="true"
+                     onblur="saveNote('${id}',this.innerText)">
+                ${USER[id]?.content || ""}
+               </div>`
+            : `<iframe src="${src.src}" loading="lazy"></iframe>`}
       </div>`;
   });
 }
@@ -276,6 +288,11 @@ function applyEdit(id){
   render();
 }
 
+function saveNote(id,text){
+  USER[id]={content:text};
+  localStorage.setItem("dashboardConfig", JSON.stringify(USER));
+}
+
 function openPanel(id){
   const s = ADMIN.sources[CONFIG[id]];
   if(s?.src) window.open(s.src,"_blank");
@@ -292,14 +309,23 @@ function startClock(){
   },1000);
 }
 
-resetBtn.onclick=()=>{
-  if(confirm("Reset dashboard and delete all notes?")){
-    localStorage.removeItem("dashboardConfig");
-    USER={};
-    CONFIG={...ADMIN.panels.defaultAssignments};
-    document.body.className="interactive";
-    render();
-  }
+resetBtn.onclick = () => {
+  const msg =
+    "Reset Dashboard?\n\n" +
+    "This will reset all dashboard panels to the institutional default layout.\n\n" +
+    "Any notes or text you have added will be permanently deleted.\n\n" +
+    "This action cannot be undone.";
+
+  if (!confirm(msg)) return;
+
+  localStorage.removeItem("dashboardConfig");
+  USER = {};
+  CONFIG = JSON.parse(JSON.stringify(ADMIN.panels.defaultAssignments));
+
+  document.body.classList.remove("maximize");
+  document.body.classList.add("interactive");
+
+  render();
 };
 
 interactiveBtn.onclick=()=>document.body.className="interactive";
@@ -308,19 +334,38 @@ maximizeBtn.onclick=()=>{
   document.documentElement.requestFullscreen().catch(()=>{});
 };
 
+/* WVDE */
 function loadWVDE(){
   fetch("https://api.allorigins.win/raw?url=https://wveis.k12.wv.us/closings/rss.php")
     .then(r=>r.text())
-    .then(t=>{
-      const doc=new DOMParser().parseFromString(t,"text/xml");
+    .then(xml=>{
+      const doc=new DOMParser().parseFromString(xml,"text/xml");
       const items=[...doc.querySelectorAll("item")]
         .filter(i=>ADMIN.header.wvde.counties.some(c=>i.textContent.includes(c)))
         .slice(0,ADMIN.header.wvde.maxLines)
-        .map(i=>i.querySelector("title").textContent);
+        .map(i=>{
+          const title=i.querySelector("title").textContent.replace("All schools in ","");
+          const desc=i.querySelector("description").textContent;
+
+          let status="Update";
+          if(/closed/i.test(desc))status="Closed";
+          else if(/delay/i.test(desc))status="Delayed";
+          else if(/non-traditional/i.test(desc))status="Non-Traditional Learning";
+
+          const date=desc.match(
+            /(Mon\.|Tue\.|Wed\.|Thu\.|Fri\.|Sat\.|Sun\.)\s+[A-Za-z]{3}\.\s+\d{1,2},\s+\d{4}/
+          );
+
+          return `<strong>${title}</strong> — ${status} on ${date ? date[0] : "Date not specified"}`;
+        });
+
       wvdeHeader.innerHTML = items.length
-        ? `<a href="${ADMIN.header.wvde.link}" target="_blank">${items.join("<br>")}</a>`
-        : "No county closures reported.";
-    });
+        ? `<a href="${ADMIN.header.wvde.link}" target="_blank" class="wvde-link">
+            ${items.join("<br>")}
+           </a>`
+        : "No county closures or delays reported.";
+    })
+    .catch(()=>wvdeHeader.textContent="WVDE data unavailable.");
 }
 </script>
 
