@@ -7,28 +7,28 @@
 
 <style>
 :root{
-  --bg: transparent;
-  --panel: transparent;
-  --border: transparent;
-  --text: #ffffff;
-  --muted: #e6e6e6;
-  --accent: #860038;
-  --gap: 8px;
-  --footer-height: 36px;
+  --bg:#0f0f0f;
+  --panel:#1a1a1a;
+  --border:#2d2d2d;
+  --text:#ffffff;
+  --muted:#e6e6e6;
+  --accent:#860038;
+  --gap:8px;
+  --footer-height:36px;
 }
 
-html, body{
+html,body{
   height:100%;
   margin:0;
   overflow:hidden;
-}
-
-*{ box-sizing:border-box; }
-
-body{
   background:var(--bg);
   color:var(--text);
   font-family:Arial,sans-serif;
+}
+
+*{box-sizing:border-box;}
+
+body{
   display:flex;
   flex-direction:column;
 }
@@ -39,11 +39,6 @@ body{
   grid-template-columns:1fr 1fr;
   padding:10px 16px;
   border-bottom:1px solid var(--border);
-}
-
-.header-left{
-  display:flex;
-  flex-direction:column;
 }
 
 .header-title{
@@ -77,7 +72,7 @@ body{
   justify-self:end;
 }
 
-/* WVDE link forced white */
+/* WVDE */
 .wvde-link,
 .wvde-link:visited,
 .wvde-link:hover,
@@ -97,7 +92,7 @@ body{
 }
 
 .column-left{
-  grid-row:1 / span 2;
+  grid-row:1/span 2;
   display:grid;
   grid-template-rows:repeat(3,1fr);
   gap:var(--gap);
@@ -159,6 +154,7 @@ footer a{
   padding:0 6px;
 }
 
+/* MAXIMIZE MODE */
 body.maximize .panel-header,
 body.maximize footer{
   display:none;
@@ -169,7 +165,7 @@ body.maximize footer{
 <body class="interactive">
 
 <header class="header-bar">
-  <div class="header-left">
+  <div>
     <div class="header-title" id="dashboardTitle"></div>
     <div class="header-meta">
       <span id="time12"></span> | <span id="time24"></span>
@@ -199,132 +195,132 @@ body.maximize footer{
 <footer id="footer"></footer>
 
 <script>
-let ADMIN, CONFIG = {}, USER = JSON.parse(localStorage.getItem("dashboardConfig")) || {};
+let ADMIN, CONFIG={}, USER=JSON.parse(localStorage.getItem("dashboardConfig"))||{};
 
-/* LOAD ADMIN CONFIG */
+/* LOAD CONFIG */
 fetch("admin-config.json")
-  .then(r => r.json())
-  .then(cfg => {
-    ADMIN = cfg;
+  .then(r=>r.json())
+  .then(cfg=>{
+    ADMIN=cfg;
     applyBranding();
     init();
-  })
-  .catch(() => alert("Admin configuration failed to load."));
-
-function applyBranding(){
-  dashboardTitle.textContent = ADMIN.branding.title;
-
-  const map = {
-    background: "--bg",
-    panel: "--panel",
-    border: "--border",
-    text: "--text",
-    muted: "--muted",
-    accent: "--accent"
-  };
-
-  Object.entries(ADMIN.branding.colors).forEach(([k,v])=>{
-    document.documentElement.style.setProperty(map[k], v);
   });
 
-  footer.innerHTML = ADMIN.footer.links
-    .map(l => `<a href="${l.url}" target="_blank">${l.label}</a>`)
-    .join(" | ");
+function applyBranding(){
+  dashboardTitle.textContent=ADMIN.branding.title;
+  Object.entries(ADMIN.branding.colors).forEach(([k,v])=>{
+    document.documentElement.style.setProperty(`--${k}`,v);
+  });
+  footer.innerHTML=ADMIN.footer.links.map(l=>`<a href="${l.url}" target="_blank">${l.label}</a>`).join(" | ");
 }
 
 function init(){
-  CONFIG = { ...ADMIN.panels.defaultAssignments, ...USER };
+  CONFIG={...ADMIN.panels.defaultAssignments,...USER};
   render();
   startClock();
   loadWVDE();
 }
 
+/* RENDER */
 function render(){
   document.querySelectorAll(".panel").forEach(p=>{
-    const id = p.dataset.id;
-    const srcKey = CONFIG[id];
-    const src = ADMIN.sources[srcKey];
+    const id=p.dataset.id;
+    const key=CONFIG[id];
+    const src=ADMIN.sources[key];
+    const custom=USER[id]?.customUrl;
 
-    p.innerHTML = `
+    p.innerHTML=`
       <div class="panel-header">
-        ${src?.title || "Empty Panel"}
+        ${src?.title||"Empty Panel"}
         <span class="panel-actions">
-          ${src?.type==="iframe" ? `<span onclick="openPanel('${id}')">↗</span>` : ""}
+          ${src?.type==="iframe"?`<span onclick="openPanel('${id}')">↗</span>`:""}
           <span onclick="editPanel('${id}')">✏</span>
         </span>
       </div>
       <div class="panel-body">
-        ${!src ? "Click ✏ to add content" :
+        ${!src?"Click ✏ to add content":
           src.type==="notes"
-            ? `<div contenteditable="true"
-                     onblur="saveNote('${id}',this.innerText)">
-                ${USER[id]?.content || ""}
-               </div>`
-            : `<iframe src="${src.src}" loading="lazy"></iframe>`}
+            ? `<div contenteditable="true" onblur="saveNote('${id}',this.innerText)">${USER[id]?.content||""}</div>`
+            : `<iframe src="${custom||src.src}" loading="lazy"></iframe>`}
       </div>`;
   });
 }
 
+/* EDIT PANEL */
 function editPanel(id){
-  const current = CONFIG[id];
-  document.querySelector(`[data-id="${id}"]`).innerHTML = `
+  const key=CONFIG[id];
+  const src=ADMIN.sources[key];
+  const existing=USER[id]?.customUrl||"";
+
+  document.querySelector(`[data-id="${id}"]`).innerHTML=`
     <div class="panel-header">Edit Panel</div>
     <div class="panel-body">
-      <select id="srcSel">
-        ${Object.entries(ADMIN.sources).map(([k,v]) =>
-          `<option value="${k}" ${k===current?"selected":""}>${v.title}</option>`
-        ).join("")}
-      </select><br><br>
+      <label>Source</label><br>
+      <select id="srcSel" onchange="toggleUrlField()">
+        ${Object.entries(ADMIN.sources).map(([k,v])=>`<option value="${k}" ${k===key?"selected":""}>${v.title}</option>`).join("")}
+      </select>
+
+      <div id="urlWrap" style="margin-top:10px;display:${src?.allowEditUrl?"block":"none"};">
+        <label>Custom URL</label><br>
+        <input id="customUrlInput" type="text" value="${existing}" style="width:100%;">
+      </div>
+
+      <br>
       <button onclick="applyEdit('${id}')">Apply</button>
       <button onclick="render()">Cancel</button>
     </div>`;
 }
 
+function toggleUrlField(){
+  const key=document.getElementById("srcSel").value;
+  document.getElementById("urlWrap").style.display=
+    ADMIN.sources[key]?.allowEditUrl?"block":"none";
+}
+
 function applyEdit(id){
-  const val = document.getElementById("srcSel").value;
-  CONFIG[id] = val;
-  USER[id] = {};
-  localStorage.setItem("dashboardConfig", JSON.stringify(USER));
+  const key=document.getElementById("srcSel").value;
+  CONFIG[id]=key;
+  USER[id]=USER[id]||{};
+  if(ADMIN.sources[key].allowEditUrl){
+    USER[id].customUrl=document.getElementById("customUrlInput").value.trim();
+  } else {
+    delete USER[id].customUrl;
+  }
+  localStorage.setItem("dashboardConfig",JSON.stringify(USER));
   render();
 }
 
+/* NOTES */
 function saveNote(id,text){
   USER[id]={content:text};
-  localStorage.setItem("dashboardConfig", JSON.stringify(USER));
+  localStorage.setItem("dashboardConfig",JSON.stringify(USER));
 }
 
+/* PANEL OPEN */
 function openPanel(id){
-  const s = ADMIN.sources[CONFIG[id]];
-  if(s?.src) window.open(s.src,"_blank");
+  const s=ADMIN.sources[CONFIG[id]];
+  if(s?.src)window.open(USER[id]?.customUrl||s.src,"_blank");
 }
 
+/* CLOCK */
 function startClock(){
-  let remaining = ADMIN.defaults.refreshIntervalSeconds;
+  let r=ADMIN.defaults.refreshIntervalSeconds;
   setInterval(()=>{
     const d=new Date();
     time12.textContent=d.toLocaleTimeString("en-US");
     time24.textContent=d.toLocaleTimeString("en-GB");
-    refreshCountdown.textContent=remaining--;
-    if(remaining<0) location.reload();
+    refreshCountdown.textContent=r--;
+    if(r<0)location.reload();
   },1000);
 }
 
-resetBtn.onclick = () => {
-  const msg =
-    "Reset Dashboard?\n\n" +
-    "This will reset all dashboard panels to the institutional default layout.\n\n" +
-    "Any notes or text you have added will be permanently deleted.\n\n" +
-    "This action cannot be undone.";
-
-  if (!confirm(msg)) return;
-
+/* RESET */
+resetBtn.onclick=()=>{
+  if(!confirm("Reset dashboard?\nAll custom panels and notes will be deleted."))return;
   localStorage.removeItem("dashboardConfig");
-  USER = {};
-  CONFIG = JSON.parse(JSON.stringify(ADMIN.panels.defaultAssignments));
-
-  document.body.classList.remove("maximize");
-  document.body.classList.add("interactive");
-
+  USER={};
+  CONFIG=JSON.parse(JSON.stringify(ADMIN.panels.defaultAssignments));
+  document.body.className="interactive";
   render();
 };
 
@@ -344,25 +340,17 @@ function loadWVDE(){
         .filter(i=>ADMIN.header.wvde.counties.some(c=>i.textContent.includes(c)))
         .slice(0,ADMIN.header.wvde.maxLines)
         .map(i=>{
-          const title=i.querySelector("title").textContent.replace("All schools in ","");
+          const county=i.querySelector("title").textContent.replace("All schools in ","");
           const desc=i.querySelector("description").textContent;
-
           let status="Update";
           if(/closed/i.test(desc))status="Closed";
           else if(/delay/i.test(desc))status="Delayed";
           else if(/non-traditional/i.test(desc))status="Non-Traditional Learning";
-
-          const date=desc.match(
-            /(Mon\.|Tue\.|Wed\.|Thu\.|Fri\.|Sat\.|Sun\.)\s+[A-Za-z]{3}\.\s+\d{1,2},\s+\d{4}/
-          );
-
-          return `<strong>${title}</strong> — ${status} on ${date ? date[0] : "Date not specified"}`;
+          const date=desc.match(/(Mon\.|Tue\.|Wed\.|Thu\.|Fri\.|Sat\.|Sun\.)\s+[A-Za-z]{3}\.\s+\d{1,2},\s+\d{4}/);
+          return `<strong>${county}</strong> — ${status} on ${date?date[0]:"Date not specified"}`;
         });
-
-      wvdeHeader.innerHTML = items.length
-        ? `<a href="${ADMIN.header.wvde.link}" target="_blank" class="wvde-link">
-            ${items.join("<br>")}
-           </a>`
+      wvdeHeader.innerHTML=items.length
+        ? `<a class="wvde-link" href="${ADMIN.header.wvde.link}" target="_blank">${items.join("<br>")}</a>`
         : "No county closures or delays reported.";
     })
     .catch(()=>wvdeHeader.textContent="WVDE data unavailable.");
