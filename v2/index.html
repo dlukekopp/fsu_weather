@@ -15,15 +15,12 @@
   --accent:#93c5fd;
   --gap:8px;
 
-  /* Column proportions (no overflow with fr units) */
   --col1:7fr;
   --col2:8fr;
   --col3:5fr;
-
   --footer-height:36px;
 }
 
-/* ===== GLOBAL CONTAINMENT ===== */
 html, body{
   height:100%;
   margin:0;
@@ -41,10 +38,8 @@ body{
   min-height:0;
 }
 
-/* ================= HEADER ================= */
-
+/* HEADER */
 .header-bar{
-  flex:0 0 auto;
   display:grid;
   grid-template-columns:1fr 1fr;
   padding:10px 16px;
@@ -52,72 +47,41 @@ body{
   border-bottom:1px solid var(--border);
 }
 
-.header-left{
-  display:flex;
-  flex-direction:column;
-}
-
-.header-title{
-  font-size:18px;
-  font-weight:700;
-}
-
-.header-meta{
-  font-size:12px;
-  color:var(--muted);
-  margin-top:4px;
-}
-
-.header-controls{
-  font-size:12px;
-  margin-top:4px;
-  color:var(--accent);
-}
-
-.header-controls span{
-  cursor:pointer;
-}
-
-.header-controls span:hover{
-  text-decoration:underline;
-}
-
-.separator{ margin:0 6px; }
+.header-left{display:flex;flex-direction:column}
+.header-title{font-size:18px;font-weight:700}
+.header-meta{font-size:12px;color:var(--muted);margin-top:4px}
+.header-controls{font-size:12px;margin-top:4px;color:var(--accent)}
+.header-controls span{cursor:pointer}
+.header-controls span:hover{text-decoration:underline}
+.separator{margin:0 6px}
 
 .header-right{
   font-size:12px;
   color:var(--muted);
-  line-height:1.35;
-  max-width:90%;
-  justify-self:end;
   text-align:right;
-  overflow:hidden;
 }
 
-/* ================= DASHBOARD ================= */
-
+/* DASHBOARD */
 .dashboard{
-  flex:1 1 auto;
+  flex:1;
   min-height:0;
   display:grid;
   grid-template-columns:var(--col1) var(--col2) var(--col3);
   grid-template-rows:1fr 1fr;
   gap:var(--gap);
   padding:var(--gap);
-  overflow:hidden;
 }
 
 .column-left{
   grid-column:1;
-  grid-row:1 / span 2;
+  grid-row:1/span 2;
   display:grid;
   grid-template-rows:repeat(3,1fr);
   gap:var(--gap);
   min-height:0;
 }
 
-/* ================= PANELS ================= */
-
+/* PANELS */
 .panel{
   background:var(--panel);
   border:1px solid var(--border);
@@ -125,41 +89,29 @@ body{
   display:flex;
   flex-direction:column;
   min-height:0;
-  overflow:hidden;
 }
 
 .panel-header{
-  flex:0 0 auto;
   padding:6px 10px;
   font-size:12px;
-  font-weight:bold;
   color:var(--muted);
   border-bottom:1px solid var(--border);
   display:flex;
   justify-content:space-between;
-  align-items:center;
 }
 
-.panel-actions{
-  display:flex;
-  gap:8px;
-}
-
-.panel-action{
+.panel-actions span{
   display:none;
   cursor:pointer;
-  font-size:12px;
   opacity:.7;
 }
 
-body.interactive .panel:hover .panel-action{
+body.interactive .panel:hover .panel-actions span{
   display:inline;
 }
 
-.panel-action:hover{ opacity:1; }
-
 .panel-body{
-  flex:1 1 auto;
+  flex:1;
   min-height:0;
   padding:6px;
   overflow:auto;
@@ -171,53 +123,22 @@ body.interactive .panel:hover .panel-action{
   border:none;
 }
 
-/* ================= NOTES ================= */
-
-.notes-display{
-  font-size:13px;
-  white-space:pre-wrap;
-  color:#e5e7eb;
-}
-
-.notes-edit{
-  width:100%;
-  min-height:120px;
-  background:#020617;
-  color:#fff;
-  border:1px solid var(--border);
-  border-radius:4px;
-  padding:6px;
-  resize:vertical;
-}
-
-/* ================= MAXIMIZE VIEW ================= */
-
-body.maximize .panel-header{
-  display:none;
-}
-
-body.maximize footer{
-  display:none;
-}
-
-/* ================= FOOTER ================= */
-
+/* FOOTER */
 footer{
-  flex:0 0 var(--footer-height);
+  height:var(--footer-height);
   display:flex;
   align-items:center;
   justify-content:center;
   background:#020617f2;
   border-top:1px solid var(--border);
   font-size:12px;
-  color:var(--muted);
 }
 
-footer a{
-  color:var(--muted);
-  text-decoration:none;
-  padding:0 6px;
-}
+footer a{color:var(--muted);text-decoration:none;padding:0 6px}
+
+/* MAXIMIZE */
+body.maximize .panel-header,
+body.maximize footer{display:none}
 </style>
 </head>
 
@@ -230,11 +151,9 @@ footer a{
       <span id="time12"></span> | <span id="time24"></span> • Refresh in <span id="refreshCountdown"></span>s
     </div>
     <div class="header-controls">
-      <span onclick="setInteractive()">Interactive Mode</span>
-      <span class="separator">•</span>
-      <span onclick="setMaximize()">Maximize View</span>
-      <span class="separator">•</span>
-      <span onclick="resetDashboard()">Reset Dashboard</span>
+      <span id="interactiveBtn">Interactive Mode</span> •
+      <span id="maximizeBtn">Maximize View</span> •
+      <span id="resetBtn">Reset Dashboard</span>
     </div>
   </div>
   <div class="header-right" id="wvdeHeader">Loading WVDE closures…</div>
@@ -246,7 +165,6 @@ footer a{
     <div class="panel" data-id="left-2"></div>
     <div class="panel" data-id="left-3"></div>
   </div>
-
   <div class="panel" data-id="center-top"></div>
   <div class="panel" data-id="right-top"></div>
   <div class="panel" data-id="center-bottom"></div>
@@ -260,28 +178,36 @@ footer a{
 </footer>
 
 <script>
-/* ================= CLOCK ================= */
-const REFRESH_INTERVAL=600;
-let remaining=REFRESH_INTERVAL;
+/* ===== DOM BINDINGS ===== */
+const time12 = document.getElementById("time12");
+const time24 = document.getElementById("time24");
+const refreshCountdown = document.getElementById("refreshCountdown");
+const wvdeHeader = document.getElementById("wvdeHeader");
+
+document.getElementById("interactiveBtn").onclick = setInteractive;
+document.getElementById("maximizeBtn").onclick = setMaximize;
+document.getElementById("resetBtn").onclick = resetDashboard;
+
+/* ===== CLOCK ===== */
+const REFRESH_INTERVAL = 600;
+let remaining = REFRESH_INTERVAL;
 
 function tick(){
-  const d=new Date();
-  time12.textContent=d.toLocaleTimeString("en-US");
-  time24.textContent=d.toLocaleTimeString("en-GB");
-  refreshCountdown.textContent=remaining;
-  if(--remaining<0) location.reload();
+  const d = new Date();
+  time12.textContent = d.toLocaleTimeString("en-US");
+  time24.textContent = d.toLocaleTimeString("en-GB");
+  refreshCountdown.textContent = remaining;
+  if(--remaining < 0) location.reload();
 }
 tick();
 setInterval(tick,1000);
 
-/* ================= PRESETS ================= */
+/* ===== PRESETS ===== */
 const PRESETS={
   traffic:{type:"iframe",title:"Traffic Camera",src:"https://webcam.io/webcams/MpbQgP?embed=true"},
   ventusky:{type:"iframe",title:"Radar (Ventusky)",src:"https://embed.ventusky.com/?p=38.98;-81.21;7&l=radar"},
   nws:{type:"iframe",title:"NWS RLX",src:"https://www.weather.gov/rlx"},
-  wv511:{type:"iframe",title:"WV 511",src:"https://www.wv511.org"},
-  radio:{type:"iframe",title:"Emergency Radio",src:"https://www.broadcastify.com/webPlayer/40500"},
-  notes:{type:"notes",title:"Notes"}
+  radio:{type:"iframe",title:"Emergency Radio",src:"https://www.broadcastify.com/webPlayer/40500"}
 };
 
 const DEFAULTS={
@@ -290,124 +216,41 @@ const DEFAULTS={
   "right-top":PRESETS.nws
 };
 
-let config=JSON.parse(localStorage.getItem("dashboardConfig")) || structuredClone(DEFAULTS);
-function save(){ localStorage.setItem("dashboardConfig",JSON.stringify(config)); }
+let config = JSON.parse(localStorage.getItem("dashboardConfig")) || structuredClone(DEFAULTS);
 
-/* ================= RENDER ================= */
+/* ===== RENDER ===== */
 function render(){
   document.querySelectorAll(".panel").forEach(p=>{
     const id=p.dataset.id;
-    const c=config[id]||{};
-    const isIframe=c.type==="iframe" && c.src;
-
-    let actions=[];
-    if(isIframe){
-      actions.push(`<span class="panel-action" onclick="refreshPanel('${id}')">⟳</span>`);
-      actions.push(`<span class="panel-action" onclick="openPanel('${id}')">↗</span>`);
-    }
-    actions.push(`<span class="panel-action" onclick="edit('${id}')">✏</span>`);
-
-    let body="";
-    if(c.type==="notes"){
-      body=`<div class="notes-display">${c.text||""}</div>`;
-    } else if(isIframe){
-      body=`<iframe src="${c.src}" loading="lazy"></iframe>`;
-    }
+    const c=config[id];
+    if(!c) return;
 
     p.innerHTML=`
       <div class="panel-header">
-        <span>${c.title||""}</span>
-        <span class="panel-actions">${actions.join("")}</span>
+        <span>${c.title}</span>
+        <span class="panel-actions">
+          <span onclick="openPanel('${id}')">↗</span>
+        </span>
       </div>
-      <div class="panel-body">${body}</div>`;
+      <div class="panel-body">
+        <iframe src="${c.src}" loading="lazy"></iframe>
+      </div>`;
   });
 }
+render();
 
+/* ===== PANEL ACTIONS ===== */
 function openPanel(id){
-  const c=config[id];
-  if(c?.src) window.open(c.src,"_blank","noopener");
+  window.open(config[id].src,"_blank");
 }
 
-function refreshPanel(id){
-  const f=document.querySelector(\`[data-id="\${id}"] iframe\`);
-  if(f) f.src=f.src;
-}
-
-/* ================= EDIT ================= */
-function edit(id){
-  const c=config[id]||{};
-  const presetKey=Object.keys(PRESETS).find(k=>PRESETS[k].src===c.src) || "notes";
-
-  document.querySelector(\`[data-id="\${id}"]\`).innerHTML=`
-    <div class="panel-header">Edit Panel</div>
-    <div class="panel-body">
-      <label>Source</label><br>
-      <select id="preset-${id}" onchange="presetChanged('${id}')">
-        ${Object.entries(PRESETS).map(([k,v])=>
-          `<option value="${k}" ${k===presetKey?"selected":""}>${v.title}</option>`
-        ).join("")}
-      </select><br><br>
-
-      <label>Title</label><br>
-      <input id="title-${id}" value="${c.title||""}" style="width:100%"><br><br>
-
-      <div id="iframe-fields-${id}">
-        <label>iframe URL</label><br>
-        <input id="src-${id}" value="${c.src||""}" style="width:100%">
-      </div>
-
-      <div id="notes-fields-${id}">
-        <label>Notes</label>
-        <textarea id="text-${id}" class="notes-edit">${c.text||""}</textarea>
-        <div style="font-size:11px;color:var(--muted);margin-top:4px">
-          Notes are stored locally in your browser and are not shared.
-        </div>
-      </div><br>
-
-      <button onclick="apply('${id}')">Apply</button>
-      <button onclick="render()">Cancel</button>
-    </div>`;
-
-  presetChanged(id);
-}
-
-function presetChanged(id){
-  const key=document.getElementById(`preset-${id}`).value;
-  const p=PRESETS[key];
-
-  document.getElementById(`title-${id}`).value=p.title||"";
-  document.getElementById(`iframe-fields-${id}`).style.display=p.type==="iframe"?"block":"none";
-  document.getElementById(`notes-fields-${id}`).style.display=p.type==="notes"?"block":"none";
-
-  if(p.type==="iframe"){
-    document.getElementById(`src-${id}`).value=p.src||"";
-  }
-}
-
-function apply(id){
-  const key=document.getElementById(`preset-${id}`).value;
-  const p=PRESETS[key];
-
-  config[id]={
-    type:p.type,
-    title:document.getElementById(`title-${id}`).value,
-    src:p.type==="iframe"?document.getElementById(`src-${id}`).value:undefined,
-    text:p.type==="notes"?document.getElementById(`text-${id}`).value:undefined
-  };
-  save();
-  render();
-}
-
-/* ================= MODES ================= */
+/* ===== MODES ===== */
 function setInteractive(){
   document.body.className="interactive";
-  localStorage.setItem("dashboardMode","interactive");
-  if(document.fullscreenElement) document.exitFullscreen();
 }
 
 function setMaximize(){
   document.body.className="maximize";
-  localStorage.setItem("dashboardMode","maximize");
   document.documentElement.requestFullscreen().catch(()=>{});
 }
 
@@ -415,7 +258,7 @@ document.addEventListener("fullscreenchange",()=>{
   if(!document.fullscreenElement) setInteractive();
 });
 
-/* ================= RESET ================= */
+/* ===== RESET ===== */
 function resetDashboard(){
   if(confirm("Reset dashboard layout and settings?")){
     localStorage.clear();
@@ -423,8 +266,18 @@ function resetDashboard(){
   }
 }
 
-/* ================= LOAD ================= */
-render();
+/* ===== WVDE ===== */
+fetch("https://api.allorigins.win/raw?url=https://wveis.k12.wv.us/closings/rss.php")
+.then(r=>r.text())
+.then(xml=>{
+  const doc=new DOMParser().parseFromString(xml,"text/xml");
+  const items=[...doc.querySelectorAll("item")];
+  const counties=["Marion","Harrison","Monongalia"];
+  const rows=items.filter(i=>counties.some(c=>i.textContent.includes(c)))
+    .map(i=>i.querySelector("title").textContent);
+  wvdeHeader.textContent = rows.length ? rows.join(" | ") : "No county closures reported.";
+})
+.catch(()=>wvdeHeader.textContent="WVDE data unavailable.");
 </script>
 
 </body>
