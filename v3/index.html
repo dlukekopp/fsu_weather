@@ -72,7 +72,7 @@ body{
   justify-self:end;
 }
 
-/* WVDE */
+/* WVDE forced white */
 .wvde-link,
 .wvde-link:visited,
 .wvde-link:hover,
@@ -105,6 +105,7 @@ body{
   border-radius:8px;
   display:flex;
   flex-direction:column;
+  min-width:0; /* avoid grid overflow */
 }
 
 .panel-header{
@@ -114,12 +115,26 @@ body{
   border-bottom:1px solid var(--border);
   display:flex;
   justify-content:space-between;
+  align-items:center;
+  gap:8px;
+}
+
+.panel-title{
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.panel-actions{
+  flex:0 0 auto;
+  white-space:nowrap;
 }
 
 .panel-actions span{
   display:none;
   cursor:pointer;
-  margin-left:6px;
+  margin-left:8px;
+  user-select:none;
 }
 
 body.interactive .panel:hover .panel-actions span{
@@ -136,6 +151,13 @@ body.interactive .panel:hover .panel-actions span{
   width:100%;
   height:100%;
   border:none;
+}
+
+.note-editor{
+  width:100%;
+  height:100%;
+  outline:none;
+  white-space:pre-wrap;
 }
 
 /* FOOTER */
@@ -195,165 +217,429 @@ body.maximize footer{
 <footer id="footer"></footer>
 
 <script>
-let ADMIN, CONFIG={}, USER=JSON.parse(localStorage.getItem("dashboardConfig"))||{};
+/* ---------------------------
+   Persistence model (v2)
+   localStorage["dashboardConfig"] = { panels: { [panelId]: { sourceKey, customUrl?, content? } } }
+   Includes migration from older formats.
+---------------------------- */
 
-/* LOAD CONFIG */
+const STORAGE_KEY = "dashboardConfig";
+let ADMIN = null;
+let STORE = loadStore(); // { panels: {...} }
+
+/* Load admin-config.json */
 fetch("admin-config.json")
-  .then(r=>r.json())
-  .then(cfg=>{
-    ADMIN=cfg;
+  .then(r => r.json())
+  .then(cfg => {
+    ADMIN = cfg;
     applyBranding();
-    init();
-  });
+    renderAllPanels();
+    startClock();
+    loadWVDE();
+  })
+  .catch(() => alert("Admin configuration failed to load."));
+
+/* ---------- Store helpers ---------- */
+
+function loadStore(){
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (!raw) return { panels: {} };
+
+  try{
+    const parsed = JSON.parse(raw);
+
+    // If already v2 shape
+    if (parsed && typeof parsed === "object" && parsed.panels && typeof parsed.panels === "object") {
+      return parsed;
+    }
+
+    // Migration path: legacy "flat" object (e.g., { "left-1": {...}, "left-2": {...} })
+    // We'll interpret values and convert to v2.
+    const migrated = { panels: {} };
+    if (parsed && typeof parsed === "object") {
+      for (const [panelId, val] of Object.entries(parsed)) {
+        if (!panelId.includes("-")) continue;
+
+        // val might be {} or {content:""} or {customUrl:""} or something else
+        migrated.panels[panelId] = migrated.panels[panelId] || {};
+
+        if (val && typeof val === "object") {
+          if (typeof val.content === "string") migrated.panels[panelId].content = val.content;
+          if (typeof val.customUrl === "string") migrated.panels[panelId].customUrl = val.customUrl;
+
+          // Some older versions didn’t store sourceKey; leave it undefined to fall back to ADMIN default
+          if (typeof val.sourceKey === "string") migrated.panels[panelId].sourceKey = val.sourceKey;
+        }
+      }
+    }
+
+    // Save migrated format back
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
+    return migrated;
+
+  } catch(e){
+    // If corrupted, start clean
+    return { panels: {} };
+  }
+}
+
+function saveStore(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(STORE));
+}
+
+function getPanelUserState(panelId){
+  STORE.panels[panelId] = STORE.panels[panelId] || {};
+  return STORE.panels[panelId];
+}
+
+function setPanelUserState(panelId, partial){
+  STORE.panels[panelId] = { ...(STORE.panels[panelId] || {}), ...partial };
+  saveStore();
+}
+
+function clearAllUserState(){
+  localStorage.removeItem(STORAGE_KEY);
+  STORE = { panels: {} };
+}
+
+/* ---------- Branding ---------- */
 
 function applyBranding(){
-  dashboardTitle.textContent=ADMIN.branding.title;
+  dashboardTitle.textContent = ADMIN.branding.title;
   Object.entries(ADMIN.branding.colors).forEach(([k,v])=>{
-    document.documentElement.style.setProperty(`--${k}`,v);
+    document.documentElement.style.setProperty(`--${k}`, v);
   });
-  footer.innerHTML=ADMIN.footer.links.map(l=>`<a href="${l.url}" target="_blank">${l.label}</a>`).join(" | ");
+
+  footer.innerHTML = ADMIN.footer.links
+    .map(l => `<a href="${l.url}" target="_blank" rel="noopener noreferrer">${l.label}</a>`)
+    .join(" | ");
 }
 
-function init(){
-  CONFIG={...ADMIN.panels.defaultAssignments,...USER};
-  render();
-  startClock();
-  loadWVDE();
+/* ---------- Panel resolution ---------- */
+
+function getEffectiveSourceKey(panelId){
+  const userState = getPanelUserState(panelId);
+  const userKey = userState.sourceKey;
+
+  // Prefer user-selected sourceKey if it exists AND is valid
+  if (userKey && ADMIN.sources[userKey]) return userKey;
+
+  // Otherwise fall back to admin defaultAssignments
+  const defKey = ADMIN.panels.defaultAssignments[panelId];
+  if (defKey && ADMIN.sources[defKey]) return defKey;
+
+  // If missing, return null
+  return null;
 }
 
-/* RENDER */
-function render(){
-  document.querySelectorAll(".panel").forEach(p=>{
-    const id=p.dataset.id;
-    const key=CONFIG[id];
-    const src=ADMIN.sources[key];
-    const custom=USER[id]?.customUrl;
+function getEffectiveIframeUrl(panelId, srcKey){
+  const src = ADMIN.sources[srcKey];
+  const userState = getPanelUserState(panelId);
 
-    p.innerHTML=`
-      <div class="panel-header">
-        ${src?.title||"Empty Panel"}
-        <span class="panel-actions">
-          ${src?.type==="iframe"?`<span onclick="openPanel('${id}')">↗</span>`:""}
-          <span onclick="editPanel('${id}')">✏</span>
-        </span>
+  // If user has customUrl AND this source allows editing, use it
+  if (src?.type === "iframe" && src.allowEditUrl && userState.customUrl) {
+    return userState.customUrl.trim();
+  }
+
+  return src?.src || "";
+}
+
+/* ---------- Render ---------- */
+
+function renderAllPanels(){
+  document.querySelectorAll(".panel").forEach(panel => renderPanel(panel.dataset.id));
+}
+
+function renderPanel(panelId){
+  const container = document.querySelector(`.panel[data-id="${panelId}"]`);
+  if (!container) return;
+
+  const srcKey = getEffectiveSourceKey(panelId);
+  const src = srcKey ? ADMIN.sources[srcKey] : null;
+
+  const title = src?.title || "Empty Panel";
+
+  const showOpen = (src?.type === "iframe");
+  const showRefresh = (src?.type === "iframe");
+
+  container.innerHTML = `
+    <div class="panel-header">
+      <div class="panel-title">${escapeHtml(title)}</div>
+      <div class="panel-actions">
+        ${showRefresh ? `<span title="Refresh panel" onclick="refreshPanel('${panelId}')">⟳</span>` : ""}
+        ${showOpen ? `<span title="Open in new tab" onclick="openPanel('${panelId}')">↗</span>` : ""}
+        <span title="Edit panel" onclick="editPanel('${panelId}')">✏</span>
       </div>
-      <div class="panel-body">
-        ${!src?"Click ✏ to add content":
-          src.type==="notes"
-            ? `<div contenteditable="true" onblur="saveNote('${id}',this.innerText)">${USER[id]?.content||""}</div>`
-            : `<iframe src="${custom||src.src}" loading="lazy"></iframe>`}
-      </div>`;
-  });
+    </div>
+    <div class="panel-body">
+      ${renderPanelBody(panelId, srcKey, src)}
+    </div>
+  `;
 }
 
-/* EDIT PANEL */
-function editPanel(id){
-  const key=CONFIG[id];
-  const src=ADMIN.sources[key];
-  const existing=USER[id]?.customUrl||"";
+function renderPanelBody(panelId, srcKey, src){
+  if (!srcKey || !src) {
+    return `Click ✏ to add content.`;
+  }
 
-  document.querySelector(`[data-id="${id}"]`).innerHTML=`
-    <div class="panel-header">Edit Panel</div>
+  if (src.type === "notes") {
+    const userState = getPanelUserState(panelId);
+    const text = userState.content || "";
+    return `
+      <div class="note-editor" contenteditable="true"
+           onblur="saveNote('${panelId}', this.innerText)">
+        ${escapeHtml(text)}
+      </div>
+      <div style="margin-top:8px;color:var(--muted);font-size:11px;">
+        Notes are saved to this browser (local storage) only and are not shared remotely.
+      </div>
+    `;
+  }
+
+  // iframe
+  const url = getEffectiveIframeUrl(panelId, srcKey);
+  if (!url) return `No URL configured. Click ✏ to update.`;
+  return `<iframe src="${escapeAttr(url)}" loading="lazy"></iframe>`;
+}
+
+/* ---------- Edit UI ---------- */
+
+function editPanel(panelId){
+  const container = document.querySelector(`.panel[data-id="${panelId}"]`);
+  if (!container) return;
+
+  const currentKey = getEffectiveSourceKey(panelId);
+  const userState = getPanelUserState(panelId);
+
+  const currentSrc = currentKey ? ADMIN.sources[currentKey] : null;
+  const showUrl = currentSrc?.allowEditUrl === true;
+  const existingUrl = (userState.customUrl || "").trim();
+
+  container.innerHTML = `
+    <div class="panel-header">
+      <div class="panel-title">Edit Panel</div>
+      <div class="panel-actions">
+        <span title="Cancel" onclick="renderPanel('${panelId}')">✖</span>
+      </div>
+    </div>
     <div class="panel-body">
-      <label>Source</label><br>
-      <select id="srcSel" onchange="toggleUrlField()">
-        ${Object.entries(ADMIN.sources).map(([k,v])=>`<option value="${k}" ${k===key?"selected":""}>${v.title}</option>`).join("")}
+      <label style="color:var(--muted);font-size:12px;">Source</label><br>
+      <select id="srcSel-${panelId}" onchange="toggleUrlField('${panelId}')"
+              style="width:100%;margin-top:6px;">
+        ${Object.entries(ADMIN.sources).map(([k,v])=>{
+          return `<option value="${escapeAttr(k)}" ${k===currentKey ? "selected" : ""}>${escapeHtml(v.title)}</option>`;
+        }).join("")}
       </select>
 
-      <div id="urlWrap" style="margin-top:10px;display:${src?.allowEditUrl?"block":"none"};">
-        <label>Custom URL</label><br>
-        <input id="customUrlInput" type="text" value="${existing}" style="width:100%;">
+      <div id="urlWrap-${panelId}" style="margin-top:10px;display:${showUrl ? "block" : "none"};">
+        <label style="color:var(--muted);font-size:12px;">Custom URL</label><br>
+        <input id="customUrlInput-${panelId}" type="text" value="${escapeAttr(existingUrl)}"
+               placeholder="https://example.com"
+               style="width:100%;margin-top:6px;">
+        <div style="margin-top:6px;color:var(--muted);font-size:11px;">
+          Tip: Some sites block embedding (X-Frame-Options / CSP). If blank, try ↗ open in a new tab.
+        </div>
       </div>
 
-      <br>
-      <button onclick="applyEdit('${id}')">Apply</button>
-      <button onclick="render()">Cancel</button>
-    </div>`;
+      <div style="margin-top:14px;display:flex;gap:8px;">
+        <button onclick="applyEdit('${panelId}')">Apply</button>
+        <button onclick="resetPanelToDefault('${panelId}')">Reset Panel</button>
+        <button onclick="renderPanel('${panelId}')">Cancel</button>
+      </div>
+    </div>
+  `;
 }
 
-function toggleUrlField(){
-  const key=document.getElementById("srcSel").value;
-  document.getElementById("urlWrap").style.display=
-    ADMIN.sources[key]?.allowEditUrl?"block":"none";
+function toggleUrlField(panelId){
+  const sel = document.getElementById(`srcSel-${panelId}`);
+  if (!sel) return;
+  const key = sel.value;
+  const src = ADMIN.sources[key];
+  const wrap = document.getElementById(`urlWrap-${panelId}`);
+  if (!wrap) return;
+  wrap.style.display = src?.allowEditUrl ? "block" : "none";
 }
 
-function applyEdit(id){
-  const key=document.getElementById("srcSel").value;
-  CONFIG[id]=key;
-  USER[id]=USER[id]||{};
-  if(ADMIN.sources[key].allowEditUrl){
-    USER[id].customUrl=document.getElementById("customUrlInput").value.trim();
-  } else {
-    delete USER[id].customUrl;
+function applyEdit(panelId){
+  const sel = document.getElementById(`srcSel-${panelId}`);
+  if (!sel) return;
+
+  const newKey = sel.value;
+  if (!ADMIN.sources[newKey]) {
+    alert("Invalid source selected.");
+    return;
   }
-  localStorage.setItem("dashboardConfig",JSON.stringify(USER));
-  render();
+
+  const src = ADMIN.sources[newKey];
+  const update = { sourceKey: newKey };
+
+  // Preserve notes content unless switching away from notes (we’ll keep it stored; harmless)
+  // For URL editing:
+  if (src.allowEditUrl) {
+    const input = document.getElementById(`customUrlInput-${panelId}`);
+    update.customUrl = (input?.value || "").trim();
+  } else {
+    // If switching to non-editable URL source, clear customUrl to avoid confusion
+    update.customUrl = "";
+  }
+
+  setPanelUserState(panelId, update);
+  renderPanel(panelId);
 }
 
-/* NOTES */
-function saveNote(id,text){
-  USER[id]={content:text};
-  localStorage.setItem("dashboardConfig",JSON.stringify(USER));
+function resetPanelToDefault(panelId){
+  // Clear ONLY this panel’s overrides
+  delete STORE.panels[panelId];
+  saveStore();
+  renderPanel(panelId);
 }
 
-/* PANEL OPEN */
-function openPanel(id){
-  const s=ADMIN.sources[CONFIG[id]];
-  if(s?.src)window.open(USER[id]?.customUrl||s.src,"_blank");
+/* ---------- Notes ---------- */
+
+function saveNote(panelId, text){
+  // Save note content but do not force sourceKey; user chooses notes source explicitly.
+  setPanelUserState(panelId, { content: text || "" });
 }
 
-/* CLOCK */
+/* ---------- Panel actions ---------- */
+
+function openPanel(panelId){
+  const srcKey = getEffectiveSourceKey(panelId);
+  if (!srcKey) return;
+  const src = ADMIN.sources[srcKey];
+  if (!src || src.type !== "iframe") return;
+  const url = getEffectiveIframeUrl(panelId, srcKey) || src.src;
+  if (url) window.open(url, "_blank", "noopener,noreferrer");
+}
+
+function refreshPanel(panelId){
+  const container = document.querySelector(`.panel[data-id="${panelId}"]`);
+  if (!container) return;
+
+  const iframe = container.querySelector("iframe");
+  if (!iframe) return;
+
+  const srcKey = getEffectiveSourceKey(panelId);
+  if (!srcKey) return;
+
+  const baseUrl = getEffectiveIframeUrl(panelId, srcKey);
+  if (!baseUrl) return;
+
+  iframe.src = addCacheBuster(baseUrl);
+}
+
+/* Add/replace a cache-buster param safely */
+function addCacheBuster(url){
+  try{
+    const u = new URL(url, window.location.href);
+    u.searchParams.set("_ts", Date.now().toString());
+    return u.toString();
+  }catch(e){
+    // Fallback for odd URLs like some .m3u8 or non-standard strings
+    const join = url.includes("?") ? "&" : "?";
+    // Strip existing _ts if present (simple)
+    const stripped = url.replace(/([?&])_ts=\d+/g, "$1").replace(/[?&]$/, "");
+    return stripped + join + "_ts=" + Date.now();
+  }
+}
+
+/* ---------- Clock + global refresh ---------- */
+
 function startClock(){
-  let r=ADMIN.defaults.refreshIntervalSeconds;
+  let remaining = ADMIN.defaults.refreshIntervalSeconds;
+
   setInterval(()=>{
-    const d=new Date();
-    time12.textContent=d.toLocaleTimeString("en-US");
-    time24.textContent=d.toLocaleTimeString("en-GB");
-    refreshCountdown.textContent=r--;
-    if(r<0)location.reload();
-  },1000);
+    const d = new Date();
+    time12.textContent = d.toLocaleTimeString("en-US");
+    time24.textContent = d.toLocaleTimeString("en-GB");
+    refreshCountdown.textContent = remaining--;
+
+    if (remaining < 0) location.reload();
+  }, 1000);
 }
 
-/* RESET */
-resetBtn.onclick=()=>{
-  if(!confirm("Reset dashboard?\nAll custom panels and notes will be deleted."))return;
-  localStorage.removeItem("dashboardConfig");
-  USER={};
-  CONFIG=JSON.parse(JSON.stringify(ADMIN.panels.defaultAssignments));
-  document.body.className="interactive";
-  render();
+/* ---------- Reset dashboard ---------- */
+
+resetBtn.onclick = () => {
+  const msg =
+    "Reset Dashboard?\n\n" +
+    "This will reset all panels to the institutional default layout.\n\n" +
+    "Any notes or custom URLs saved in this browser will be permanently deleted.\n\n" +
+    "This action cannot be undone.";
+
+  if (!confirm(msg)) return;
+
+  clearAllUserState();
+  document.body.className = "interactive";
+  renderAllPanels();
 };
 
-interactiveBtn.onclick=()=>document.body.className="interactive";
-maximizeBtn.onclick=()=>{
-  document.body.className="maximize";
+interactiveBtn.onclick = () => document.body.className = "interactive";
+
+maximizeBtn.onclick = () => {
+  document.body.className = "maximize";
   document.documentElement.requestFullscreen().catch(()=>{});
 };
 
-/* WVDE */
+/* ---------- WVDE ---------- */
+
 function loadWVDE(){
+  if (!ADMIN?.header?.showWVDE) return;
+
   fetch("https://api.allorigins.win/raw?url=https://wveis.k12.wv.us/closings/rss.php")
-    .then(r=>r.text())
-    .then(xml=>{
-      const doc=new DOMParser().parseFromString(xml,"text/xml");
-      const items=[...doc.querySelectorAll("item")]
-        .filter(i=>ADMIN.header.wvde.counties.some(c=>i.textContent.includes(c)))
-        .slice(0,ADMIN.header.wvde.maxLines)
-        .map(i=>{
-          const county=i.querySelector("title").textContent.replace("All schools in ","");
-          const desc=i.querySelector("description").textContent;
-          let status="Update";
-          if(/closed/i.test(desc))status="Closed";
-          else if(/delay/i.test(desc))status="Delayed";
-          else if(/non-traditional/i.test(desc))status="Non-Traditional Learning";
-          const date=desc.match(/(Mon\.|Tue\.|Wed\.|Thu\.|Fri\.|Sat\.|Sun\.)\s+[A-Za-z]{3}\.\s+\d{1,2},\s+\d{4}/);
-          return `<strong>${county}</strong> — ${status} on ${date?date[0]:"Date not specified"}`;
+    .then(r => r.text())
+    .then(xml => {
+      const doc = new DOMParser().parseFromString(xml, "text/xml");
+
+      const items = [...doc.querySelectorAll("item")]
+        .filter(item =>
+          ADMIN.header.wvde.counties.some(county =>
+            item.querySelector("title")?.textContent.includes(county)
+          )
+        )
+        .slice(0, ADMIN.header.wvde.maxLines)
+        .map(item => {
+          const title = item.querySelector("title")?.textContent || "";
+          const desc  = item.querySelector("description")?.textContent || "";
+
+          const countyName = title.replace("All schools in ", "").trim();
+
+          let status = "Update";
+          if (/closed/i.test(desc)) status = "Closed";
+          else if (/delay/i.test(desc)) status = "Delayed";
+          else if (/non-traditional/i.test(desc)) status = "Non-Traditional Learning";
+
+          const dateMatch = desc.match(
+            /(Mon\.|Tue\.|Wed\.|Thu\.|Fri\.|Sat\.|Sun\.)\s+[A-Za-z]{3}\.\s+\d{1,2},\s+\d{4}/
+          );
+
+          const dateText = dateMatch ? dateMatch[0] : "Date not specified";
+
+          return `<strong>${escapeHtml(countyName)}</strong> — ${escapeHtml(status)} on ${escapeHtml(dateText)}`;
         });
-      wvdeHeader.innerHTML=items.length
-        ? `<a class="wvde-link" href="${ADMIN.header.wvde.link}" target="_blank">${items.join("<br>")}</a>`
+
+      wvdeHeader.innerHTML = items.length
+        ? `<a class="wvde-link" href="${escapeAttr(ADMIN.header.wvde.link)}" target="_blank" rel="noopener noreferrer">
+             ${items.join("<br>")}
+           </a>`
         : "No county closures or delays reported.";
     })
-    .catch(()=>wvdeHeader.textContent="WVDE data unavailable.");
+    .catch(() => {
+      wvdeHeader.textContent = "WVDE data unavailable.";
+    });
+}
+
+/* ---------- Utils ---------- */
+
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, s => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"
+  }[s]));
+}
+
+function escapeAttr(str){
+  // attribute-safe version; reuse HTML escaping
+  return escapeHtml(str);
 }
 </script>
 
