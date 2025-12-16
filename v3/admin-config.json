@@ -1,16 +1,17 @@
 {
-"branding": {
-  "title": "Weather & Operations Dashboard",
-  "institution": "Fairmont State University",
-  "colors": {
-    "background": "#0f0f0f",
-    "panel": "#1a1a1a",
-    "border": "#2d2d2d",
-    "text": "#ffffff",
-    "muted": "#e6e6e6",
-    "accent": "#860038"
-  }
-},
+  "branding": {
+    "title": "Weather & Operations Dashboard",
+    "institution": "Fairmont State University",
+    "colors": {
+      "background": "#0f0f0f",
+      "panel": "#1a1a1a",
+      "border": "#2d2d2d",
+      "text": "#ffffff",
+      "muted": "#e6e6e6",
+      "accent": "#860038"
+    }
+  },
+
   "header": {
     "showWVDE": true,
     "wvde": {
@@ -67,6 +68,55 @@
       "title": "CAM: Downtown Fairmont (Timelapse)",
       "src": "https://webcam.io/webcams/MpbQgP?embed=true",
       "allowEditUrl": false
+    },
+
+    "cam_har_us50_mm75_5": {
+      "type": "iframe",
+      "title": "CAM: [HAR] US-50 @ MM 75.5",
+      "src": "https://vtc1.roadsummary.com/rtplive/CAM001/playlist.m3u8",
+      "allowEditUrl": false
+    },
+
+    "cam_har_i79_mm119": {
+      "type": "iframe",
+      "title": "CAM: [HAR] I-79 @ MM 119 (Clarksburg)",
+      "src": "https://vtc1.roadsummary.com/rtplive/CAM028/playlist.m3u8",
+      "allowEditUrl": false
+    },
+
+    "cam_mar_i79_mm133": {
+      "type": "iframe",
+      "title": "CAM: [MAR] I-79 @ MM 133 (Kingmont)",
+      "src": "https://vtc3.roadsummary.com/rtplive/CAM074/playlist.m3u8",
+      "allowEditUrl": false
+    },
+
+    "cam_mar_i79_mm135": {
+      "type": "iframe",
+      "title": "CAM: [MAR] I-79 @ MM 135",
+      "src": "https://vtc3.roadsummary.com/rtplive/CAM003/playlist.m3u8",
+      "allowEditUrl": false
+    },
+
+    "cam_mon_i79_mm0_6": {
+      "type": "iframe",
+      "title": "CAM: [MON] I-79 @ MM 0.6 (I-68 I/C C)",
+      "src": "https://vtc3.roadsummary.com/rtplive/CAM094/playlist.m3u8",
+      "allowEditUrl": false
+    },
+
+    "cam_mon_i79_mm0_3": {
+      "type": "iframe",
+      "title": "CAM: [MON] I-79 @ MM 0.3 (I-68 I/C A)",
+      "src": "https://vtc3.roadsummary.com/rtplive/CAM092/playlist.m3u8",
+      "allowEditUrl": false
+    },
+
+    "cam_mon_i79_mm153": {
+      "type": "iframe",
+      "title": "CAM: [MON] I-79 @ MM 153",
+      "src": "https://vtc2.roadsummary.com/rtplive/CAM116/playlist.m3u8",
+      "allowEditUrl": false
     }
   },
 
@@ -76,11 +126,11 @@
     "defaultAssignments": {
       "left-1": "cam_downtown_fairmont",
       "left-2": "wvtv_weather_cams",
-      "left-3": "nws_rlx",
+      "left-3": "cam_mon_i79_mm153",
       "center-top": "ventusky",
-      "right-top": "nws_rlx",
-      "center-bottom": "emergency_radio",
-      "right-bottom": "notes"
+      "right-top": "notes",
+      "center-bottom": "nws_rlx",
+      "right-bottom": "emergency_radio"
     }
   },
 
