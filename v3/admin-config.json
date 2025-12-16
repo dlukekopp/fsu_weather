@@ -63,6 +63,13 @@
       "title": "Notes / Text"
     },
 
+    "customURL": {
+      "type": "iframe",
+      "title": "Custom URL",
+      "src": "",
+      "allowEditUrl": true
+    },
+
     "cam_downtown_fairmont": {
       "type": "iframe",
       "title": "CAM: Downtown Fairmont (Timelapse)",
@@ -119,14 +126,6 @@
       "allowEditUrl": false
     }
   },
-    "customURL": {
-      "type": "iframe",
-      "title": "Custom URL",
-      "src": "",
-      "allowEditUrl": true
-    }
-  },
-  
 
   "panels": {
     "layout": "7-panels",
