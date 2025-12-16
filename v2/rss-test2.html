@@ -2,61 +2,95 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>WVDE RSS Minimal Test</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WVDE RSS County Filter</title>
 </head>
-
-<body style="font-family: Arial, sans-serif; padding: 20px;">
-
-  <h1>WVDE RSS Test</h1>
-  <div id="output">Loading feed…</div>
-
+<body style="font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: 0 auto;">
+  <h1>School Closings & Delays</h1>
+  <div id="status" style="margin: 20px 0; padding: 12px; border-radius: 4px; font-weight: bold;"></div>
+  <div id="output" style="margin-top: 20px;"></div>
   <script>
-    const FEED_URL =
-      "https://api.allorigins.win/raw?url=https://wveis.k12.wv.us/closings/rss.php";
-
+    const FEED_URL = "https://api.allorigins.win/raw?url=https://wveis.k12.wv.us/closings/rss.php";
     const COUNTIES = ["Marion", "Harrison", "Monongalia"];
+    const status = document.getElementById("status");
     const output = document.getElementById("output");
 
+    // Set status message with color coding
+    function setStatus(message, type) {
+      const colors = {
+        checking: { bg: "#e3f2fd", text: "#1565c0", border: "#2196f3" },
+        success: { bg: "#e8f5e9", text: "#2e7d32", border: "#4caf50" },
+        warning: { bg: "#fff3e0", text: "#e65100", border: "#ff9800" },
+        error: { bg: "#ffebee", text: "#c62828", border: "#f44336" }
+      };
+      const color = colors[type];
+      status.style.cssText = `background: ${color.bg}; color: ${color.text}; border-left: 4px solid ${color.border}; padding: 12px; border-radius: 4px; font-weight: bold;`;
+      status.textContent = message;
+    }
+
+    // Initial status
+    setStatus("⏳ Checking for announcements...", "checking");
+
     fetch(FEED_URL)
-      .then(res => res.text())
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP error: ${res.status}`);
+        return res.text();
+      })
       .then(xmlText => {
         const parser = new DOMParser();
         const xml = parser.parseFromString(xmlText, "application/xml");
+        
+        // Check for XML parsing errors
+        const parseError = xml.querySelector("parsererror");
+        if (parseError) {
+          throw new Error("XML parsing failed");
+        }
 
         const items = Array.from(xml.querySelectorAll("item"));
-
+        
         if (items.length === 0) {
-          output.textContent = "RSS loaded, but no items found.";
+          setStatus("ℹ️ No announcements in feed", "warning");
+          output.innerHTML = '<p style="color: #666;">The RSS feed is currently empty.</p>';
           return;
         }
 
+        // Filter items by county in title
         const matches = items.filter(item => {
-          const title = item.querySelector("title")?.textContent || "";
-          return COUNTIES.some(c =>
-            title.toLowerCase().includes(c.toLowerCase())
+          const titleEl = item.querySelector("title");
+          if (!titleEl) return false;
+          
+          const title = titleEl.textContent.trim();
+          return COUNTIES.some(county => 
+            title.toLowerCase().includes(county.toLowerCase())
           );
         });
 
         if (matches.length === 0) {
-          output.textContent =
-            "RSS loaded, but no matching counties found.";
+          setStatus("ℹ️ No results found for Marion, Harrison, or Monongalia counties", "warning");
+          output.innerHTML = '<p style="color: #666;">There are announcements in the feed, but none match your selected counties.</p>';
           return;
         }
 
+        // Success - display results
+        setStatus(`✓ Found ${matches.length} announcement${matches.length !== 1 ? 's' : ''}`, "success");
+        
         output.innerHTML = "";
-
-        matches.forEach(item => {
-          const p = document.createElement("p");
-          p.innerHTML = `<strong>${item.querySelector("title").textContent}</strong><br>
-                         ${item.querySelector("description").textContent}`;
-          output.appendChild(p);
+        matches.forEach((item, index) => {
+          const descEl = item.querySelector("description");
+          if (descEl) {
+            const desc = descEl.textContent.trim();
+            const p = document.createElement("p");
+            p.style.cssText = "padding: 12px; background: #f5f5f5; border-left: 4px solid #007bff; margin-bottom: 12px; line-height: 1.6;";
+            p.textContent = desc;
+            output.appendChild(p);
+          }
         });
       })
       .catch(err => {
-        output.textContent = "Fetch failed. Check console.";
-        console.error(err);
+        setStatus("✗ Failed to load feed", "error");
+        output.innerHTML = '<p style="color: #c00;">Unable to retrieve announcements. Please try again later.</p>';
+        console.error("Feed error:", err);
       });
   </script>
-
 </body>
 </html>
