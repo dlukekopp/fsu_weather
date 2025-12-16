@@ -3,7 +3,7 @@
     "title": "Weather & Operations Dashboard",
     "institution": "Fairmont State University",
     "colors": {
-      "background": "#0b1220",
+      "background": "#860038",
       "panel": "#020617",
       "border": "#1e293b",
       "text": "#ffffff",
@@ -53,6 +53,13 @@
       "allowEditUrl": false
     },
 
+    "wvtv_weather_cams": {
+      "type": "iframe",
+      "title": "WDTV Weather Cams (Multi-Cities)",
+      "src": "https://player.twitch.tv/?channel=5newswdtv&parent=dlukekopp.github.io",
+      "allowEditUrl": false
+    },
+
     "emergency_radio": {
       "type": "iframe",
       "title": "Emergency Radio",
@@ -63,6 +70,13 @@
     "notes": {
       "type": "notes",
       "title": "Notes / Text"
+    },
+
+    "cam_downtown_fairmont": {
+      "type": "iframe",
+      "title": "CAM: Downtown Fairmont (Timelapse)",
+      "src": "https://webcam.io/webcams/MpbQgP?embed=true",
+      "allowEditUrl": false
     },
 
     "cam_har_us50_mm75_5": {
@@ -124,7 +138,7 @@
       "left-3": "cam_mon_i79_mm153",
       "center-top": "ventusky",
       "right-top": "nws_rlx",
-      "center-bottom": "emergency_radio",
+      "center-bottom": "wvtv_weather_cams",
       "right-bottom": "notes"
     }
   },
