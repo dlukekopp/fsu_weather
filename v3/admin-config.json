@@ -21,13 +21,15 @@
     }
   },
 
-  "footer": {
-    "links": [
-      { "label": "FSU", "url": "https://www.fairmontstate.edu" },
-      { "label": "WV 511", "url": "https://www.wv511.org" },
-      { "label": "Policies", "url": "https://www.fairmontstate.edu/about/policies" }
-    ]
-  },
+"footer": {
+  "links": [
+    { "label": "FSU Home", "url": "https://www.fairmontstate.edu" },
+    { "label": "WV 511", "url": "https://www.wv511.org" },
+    { "label": "WV DHSEM", "url": "https://dhsem.wv.gov/" },
+    { "label": "FEMA EOC", "url": "https://www.fema.gov/emergency-managers/nims/components#eoc" },
+    { "label": "Power Outage Map", "url": "https://outages-mdwv.firstenergycorp.com/?address=26554&gpsMarker=show" }
+  ]
+},
 
   "sources": {
     "ventusky": {
