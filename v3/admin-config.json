@@ -133,13 +133,13 @@
     "layout": "7-panels",
     "allowedTypes": ["iframe", "notes"],
     "defaultAssignments": {
-      "left-1": "cam_har_i79_mm119",
-      "left-2": "cam_mar_i79_mm133",
-      "left-3": "cam_mon_i79_mm153",
+      "left-1": "cam_downtown_fairmont",
+      "left-2": "wvtv_weather_cams",
+      "left-3": "cam_mon_i79_mm0_3",
       "center-top": "ventusky",
-      "right-top": "nws_rlx",
-      "center-bottom": "wvtv_weather_cams",
-      "right-bottom": "notes"
+      "right-top": "notes",
+      "center-bottom": "nws_rlx",
+      "right-bottom": "emergency_radio"
     }
   },
 
