@@ -1,17 +1,16 @@
 {
-  "branding": {
-    "title": "Weather & Operations Dashboard",
-    "institution": "Fairmont State University",
-    "colors": {
-      "background": "#860038",
-      "panel": "#020617",
-      "border": "#1e293b",
-      "text": "#ffffff",
-      "muted": "rgba(255,255,255,0.7)",
-      "accent": "#93c5fd"
-    }
-  },
-
+"branding": {
+  "title": "Weather & Operations Dashboard",
+  "institution": "Fairmont State University",
+  "colors": {
+    "background": "#0f0f0f",
+    "panel": "#1a1a1a",
+    "border": "#2d2d2d",
+    "text": "#ffffff",
+    "muted": "#e6e6e6",
+    "accent": "#860038"
+  }
+},
   "header": {
     "showWVDE": true,
     "wvde": {
