@@ -1,0 +1,87 @@
+{
+  "branding": {
+    "title": "Weather & Operations Dashboard",
+    "institution": "Fairmont State University",
+    "colors": {
+      "background": "#0b1220",
+      "panel": "#020617",
+      "border": "#1e293b",
+      "text": "#ffffff",
+      "muted": "rgba(255,255,255,0.7)",
+      "accent": "#93c5fd"
+    }
+  },
+
+  "header": {
+    "showWVDE": true,
+    "wvde": {
+      "counties": ["Harrison", "Marion", "Monongalia"],
+      "maxLines": 3,
+      "link": "https://wveis.k12.wv.us/closings/"
+    }
+  },
+
+  "footer": {
+    "links": [
+      {
+        "label": "FSU",
+        "url": "https://www.fairmontstate.edu"
+      },
+      {
+        "label": "WV 511",
+        "url": "https://www.wv511.org"
+      },
+      {
+        "label": "Policies",
+        "url": "https://www.fairmontstate.edu/about/policies"
+      }
+    ]
+  },
+
+  "sources": {
+    "ventusky": {
+      "type": "iframe",
+      "title": "Radar (Ventusky)",
+      "src": "https://embed.ventusky.com/?p=38.98;-81.21;7&l=radar",
+      "allowEditUrl": false
+    },
+    "nws_rlx": {
+      "type": "iframe",
+      "title": "NWS RLX",
+      "src": "https://www.weather.gov/rlx",
+      "allowEditUrl": false
+    },
+    "traffic_camera": {
+      "type": "iframe",
+      "title": "Traffic Camera",
+      "src": "https://webcam.io/webcams/MpbQgP?embed=true",
+      "allowEditUrl": true
+    },
+    "emergency_radio": {
+      "type": "iframe",
+      "title": "Emergency Radio",
+      "src": "https://www.broadcastify.com/webPlayer/40500",
+      "allowEditUrl": false
+    },
+    "notes": {
+      "type": "notes",
+      "title": "Notes / Text"
+    }
+  },
+
+  "panels": {
+    "layout": "7-panels",
+    "allowedTypes": ["iframe", "notes"],
+    "defaultAssignments": {
+      "left-1": "traffic_camera",
+      "center-top": "ventusky",
+      "right-top": "nws_rlx"
+    }
+  },
+
+  "defaults": {
+    "refreshIntervalSeconds": 600,
+    "startInMaximizeView": false,
+    "allowUserReset": true
+  }
+}
