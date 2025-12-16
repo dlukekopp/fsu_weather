@@ -10,7 +10,7 @@
   --bg:#0b1220;
   --panel:#020617;
   --border:#1e293b;
-  --text:#ffffff;
+  --text:#fff;
   --muted:rgba(255,255,255,.7);
   --accent:#93c5fd;
   --gap:8px;
@@ -18,8 +18,6 @@
   --col1:35%;
   --col2:40%;
   --col3:25%;
-
-  --footer-height:36px;
 }
 
 *{box-sizing:border-box}
@@ -44,10 +42,7 @@ body{
   border-bottom:1px solid var(--border);
 }
 
-.header-left{
-  display:flex;
-  flex-direction:column;
-}
+.header-left{display:flex;flex-direction:column}
 
 .header-title{
   font-size:18px;
@@ -85,15 +80,6 @@ body{
   text-align:right;
 }
 
-.header-right a{
-  color:var(--text);
-  text-decoration:none;
-}
-
-.header-right a:hover{
-  text-decoration:underline;
-}
-
 /* ================= DASHBOARD ================= */
 
 .dashboard{
@@ -107,7 +93,7 @@ body{
 
 .column-left{
   grid-column:1;
-  grid-row:1 / span 2;
+  grid-row:1/span 2;
   display:grid;
   grid-template-rows:repeat(3,1fr);
   gap:var(--gap);
@@ -172,10 +158,28 @@ body.interactive .panel:hover .panel-action{
   color:#e5e7eb;
 }
 
+.notes-edit{
+  width:100%;
+  height:100%;
+  background:#020617;
+  color:#fff;
+  border:1px solid var(--border);
+  border-radius:4px;
+  padding:6px;
+  resize:none;
+}
+
+/* ================= MAXIMIZE VIEW ================= */
+
+body.maximize .panel-header,
+body.maximize footer{
+  display:none;
+}
+
 /* ================= FOOTER ================= */
 
 footer{
-  height:var(--footer-height);
+  height:36px;
   display:flex;
   align-items:center;
   justify-content:center;
@@ -190,18 +194,6 @@ footer a{
   text-decoration:none;
   padding:0 6px;
 }
-
-footer span{opacity:.5}
-
-/* ================= MAXIMIZE VIEW ================= */
-
-body.maximize .panel-header{
-  display:none;
-}
-
-body.maximize footer{
-  display:none;
-}
 </style>
 </head>
 
@@ -211,24 +203,15 @@ body.maximize footer{
   <div class="header-left">
     <div class="header-title">Weather & Operations Dashboard</div>
     <div class="header-meta">
-      <span id="time12"></span>
-      <span class="separator">|</span>
-      <span id="time24"></span>
-      <span class="separator">•</span>
-      Refresh in <span id="refreshCountdown"></span>s
+      <span id="time12"></span> | <span id="time24"></span> • Refresh in <span id="refreshCountdown"></span>s
     </div>
     <div class="header-controls">
-      <span onclick="setInteractiveMode()">Interactive Mode</span>
-      <span class="separator">•</span>
-      <span onclick="setMaximizeView()">Maximize View</span>
-      <span class="separator">•</span>
+      <span onclick="setInteractive()">Interactive Mode</span> •
+      <span onclick="setMaximize()">Maximize View</span> •
       <span onclick="resetDashboard()">Reset Dashboard</span>
     </div>
   </div>
-
-  <div class="header-right" id="wvdeHeader">
-    Loading WVDE closures…
-  </div>
+  <div class="header-right" id="wvdeHeader">Loading WVDE closures…</div>
 </header>
 
 <div class="dashboard">
@@ -237,7 +220,6 @@ body.maximize footer{
     <div class="panel" data-id="left-2"></div>
     <div class="panel" data-id="left-3"></div>
   </div>
-
   <div class="panel" data-id="center-top"></div>
   <div class="panel" data-id="right-top"></div>
   <div class="panel" data-id="center-bottom"></div>
@@ -245,58 +227,133 @@ body.maximize footer{
 </div>
 
 <footer>
-  <a href="https://www.fairmontstate.edu" target="_blank">FSU</a><span>|</span>
-  <a href="https://www.wv511.org" target="_blank">WV 511</a><span>|</span>
+  <a href="https://www.fairmontstate.edu" target="_blank">FSU</a> |
+  <a href="https://www.wv511.org" target="_blank">WV 511</a> |
   <a href="https://www.weather.gov/rlx" target="_blank">NWS RLX</a>
 </footer>
 
 <script>
 /* ================= CLOCK ================= */
-
-const REFRESH_INTERVAL = 600;
-let remaining = REFRESH_INTERVAL;
-
+const REFRESH_INTERVAL=600;
+let remaining=REFRESH_INTERVAL;
 function tick(){
-  const now = new Date();
-  time12.textContent = now.toLocaleTimeString("en-US");
-  time24.textContent = now.toLocaleTimeString("en-GB");
-  refreshCountdown.textContent = remaining;
-  if(--remaining < 0) location.reload();
+  const d=new Date();
+  time12.textContent=d.toLocaleTimeString("en-US");
+  time24.textContent=d.toLocaleTimeString("en-GB");
+  refreshCountdown.textContent=remaining;
+  if(--remaining<0) location.reload();
+}
+tick(); setInterval(tick,1000);
+
+/* ================= PRESETS ================= */
+const PRESETS={
+  traffic:{type:"iframe",title:"Traffic Camera",src:"https://webcam.io/webcams/MpbQgP?embed=true"},
+  ventusky:{type:"iframe",title:"Radar (Ventusky)",src:"https://embed.ventusky.com/?p=38.98;-81.21;7&l=radar"},
+  nws:{type:"iframe",title:"NWS RLX",src:"https://www.weather.gov/rlx"},
+  wv511:{type:"iframe",title:"WV 511",src:"https://www.wv511.org"},
+  radio:{type:"iframe",title:"Emergency Radio",src:"https://www.broadcastify.com/webPlayer/40500"},
+  notes:{type:"notes",title:"Notes"}
+};
+
+const DEFAULTS={
+  "left-1":PRESETS.traffic,
+  "center-top":PRESETS.ventusky,
+  "right-top":PRESETS.nws
+};
+
+let config=JSON.parse(localStorage.getItem("dashboardConfig"))||structuredClone(DEFAULTS);
+
+function save(){localStorage.setItem("dashboardConfig",JSON.stringify(config));}
+
+/* ================= RENDER ================= */
+function render(){
+  document.querySelectorAll(".panel").forEach(p=>{
+    const id=p.dataset.id;
+    const c=config[id]||{};
+    const isIframe=c.type==="iframe" && c.src;
+
+    let actions=[];
+    if(isIframe){
+      actions.push(`<span class="panel-action" onclick="refreshPanel('${id}')">⟳</span>`);
+      actions.push(`<span class="panel-action" onclick="openPanel('${id}')">↗</span>`);
+    }
+    actions.push(`<span class="panel-action" onclick="edit('${id}')">✏</span>`);
+
+    let body="";
+    if(c.type==="notes"){
+      body=`<div class="notes-display">${c.text||""}</div>`;
+    } else if(isIframe){
+      body=`<iframe src="${c.src}" loading="lazy"></iframe>`;
+    }
+
+    p.innerHTML=`
+      <div class="panel-header">
+        <span>${c.title||""}</span>
+        <span class="panel-actions">${actions.join("")}</span>
+      </div>
+      <div class="panel-body">${body}</div>`;
+  });
 }
 
-tick();
-setInterval(tick,1000);
+function openPanel(id){
+  const c=config[id];
+  if(c?.src) window.open(c.src,"_blank","noopener");
+}
 
-/* ================= MODE MANAGEMENT ================= */
+function refreshPanel(id){
+  const f=document.querySelector(`[data-id="${id}"] iframe`);
+  if(f) f.src=f.src;
+}
 
-function setInteractiveMode(){
-  document.body.classList.remove("maximize");
-  document.body.classList.add("interactive");
+/* ================= EDIT ================= */
+function edit(id){
+  const c=config[id]||{};
+  document.querySelector(`[data-id="${id}"]`).innerHTML=`
+    <div class="panel-header">Edit Panel</div>
+    <div class="panel-body">
+      <select id="preset-${id}">
+        ${Object.entries(PRESETS).map(([k,v])=>
+          `<option value="${k}">${v.title}</option>`
+        ).join("")}
+      </select><br><br>
+      <input id="title-${id}" placeholder="Title" value="${c.title||""}"><br><br>
+      <input id="src-${id}" placeholder="iframe URL" value="${c.src||""}"><br><br>
+      <textarea id="text-${id}" placeholder="Notes">${c.text||""}</textarea><br><br>
+      <button onclick="apply('${id}')">Apply</button>
+      <button onclick="render()">Cancel</button>
+    </div>`;
+}
+
+function apply(id){
+  const preset=document.getElementById(`preset-${id}`).value;
+  const base=PRESETS[preset];
+  config[id]={
+    type:base.type,
+    title:document.getElementById(`title-${id}`).value||base.title,
+    src:base.type==="iframe"?document.getElementById(`src-${id}`).value||base.src:undefined,
+    text:base.type==="notes"?document.getElementById(`text-${id}`).value:undefined
+  };
+  save(); render();
+}
+
+/* ================= MODES ================= */
+function setInteractive(){
+  document.body.className="interactive";
   localStorage.setItem("dashboardMode","interactive");
-
-  if(document.fullscreenElement){
-    document.exitFullscreen();
-  }
+  if(document.fullscreenElement) document.exitFullscreen();
 }
 
-function setMaximizeView(){
-  document.body.classList.remove("interactive");
-  document.body.classList.add("maximize");
+function setMaximize(){
+  document.body.className="maximize";
   localStorage.setItem("dashboardMode","maximize");
-
-  if(!document.fullscreenElement){
-    document.documentElement.requestFullscreen().catch(()=>{});
-  }
+  document.documentElement.requestFullscreen().catch(()=>{});
 }
 
 document.addEventListener("fullscreenchange",()=>{
-  if(!document.fullscreenElement){
-    setInteractiveMode();
-  }
+  if(!document.fullscreenElement) setInteractive();
 });
 
 /* ================= RESET ================= */
-
 function resetDashboard(){
   if(confirm("Reset dashboard layout and settings?")){
     localStorage.clear();
@@ -304,47 +361,8 @@ function resetDashboard(){
   }
 }
 
-/* ================= LOAD MODE ================= */
-
-const params = new URLSearchParams(window.location.search);
-const savedMode = params.get("mode") || localStorage.getItem("dashboardMode") || "interactive";
-
-if(savedMode === "maximize"){
-  document.body.classList.add("maximize");
-  document.body.classList.remove("interactive");
-}
-
-/* ================= WVDE RSS ================= */
-
-fetch("https://api.allorigins.win/raw?url=https://wveis.k12.wv.us/closings/rss.php")
-.then(r=>r.text())
-.then(xml=>{
-  const doc = new DOMParser().parseFromString(xml,"text/xml");
-  const items = [...doc.querySelectorAll("item")];
-  const counties = ["Marion","Harrison","Monongalia"];
-
-  const rows = items
-    .filter(i=>counties.some(c=>i.querySelector("title").textContent.includes(c)))
-    .map(i=>{
-      const county = i.querySelector("title").textContent.replace("All schools in ","");
-      const desc = i.querySelector("description").textContent;
-      let status = "Update";
-
-      if(desc.includes("closed")) status="Closed";
-      else if(desc.includes("delay")) status="Delay";
-      else if(desc.includes("non-traditional")) status="NTI";
-
-      const date = desc.match(/on (.+?)\./)?.[1] || "";
-      return `${county} — ${status}${date ? ` (${date})` : ""}`;
-    });
-
-  wvdeHeader.innerHTML = rows.length
-    ? `<a href="https://wveis.k12.wv.us/closings/" target="_blank">${rows.join("<br>")}</a>`
-    : "No county closures or delays reported.";
-})
-.catch(()=>{
-  wvdeHeader.textContent="WVDE data unavailable.";
-});
+/* ================= LOAD ================= */
+render();
 </script>
 
 </body>
